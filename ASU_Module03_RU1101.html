@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Módulo 03 — Preenfriamiento RU1101 | ASU Venezuela 15TPD</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0a0f; --bg2:#12121a; --bg3:#1a1a26; --bg4:#22223a;
+  --orange:#ff6b1a; --orange-dim:#ff6b1a33; --orange-mid:#ff6b1a88;
+  --green:#22c55e; --green-dim:#22c55e22;
+  --red:#ef4444; --red-dim:#ef444422;
+  --yellow:#f59e0b; --yellow-dim:#f59e0b22;
+  --blue:#3b82f6; --blue-dim:#3b82f622;
+  --cyan:#06b6d4; --cyan-dim:#06b6d422;
+  --text:#e8e8f0; --text-dim:#8888aa; --border:#2a2a3f;
+  --font-d:'Barlow Condensed',sans-serif;
+  --font-b:'Barlow',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);min-height:100vh;overflow-x:hidden;}
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* HDR */
+.hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;
+  display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.hdr-back{width:40px;height:40px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;font-size:18px;color:var(--text-dim);}
+.hdr-back:active{background:var(--bg4);}
+.hdr-info{flex:1;min-width:0;}
+.hdr-tag{font-family:var(--font-d);font-size:10px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--cyan);margin-bottom:2px;}
+.hdr-title{font-family:var(--font-d);font-size:18px;font-weight:800;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hdr-badge{background:var(--cyan);color:#000;font-family:var(--font-d);
+  font-size:11px;font-weight:800;padding:4px 8px;border-radius:6px;
+  letter-spacing:1px;flex-shrink:0;}
+
+/* HOME HERO */
+.home-hero{background:linear-gradient(180deg,#051a1a 0%,var(--bg) 100%);
+  padding:24px 16px 16px;position:relative;overflow:hidden;}
+.home-hero::before{content:'';position:absolute;top:-60px;right:-60px;
+  width:200px;height:200px;
+  background:radial-gradient(circle,#06b6d415 0%,transparent 70%);pointer-events:none;}
+.home-badge{display:inline-flex;align-items:center;gap:8px;
+  background:var(--cyan-dim);border:1px solid #06b6d488;
+  border-radius:8px;padding:6px 12px;margin-bottom:16px;}
+.home-badge-dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);}
+.home-badge-txt{font-family:var(--font-d);font-size:12px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--cyan);}
+.home-title{font-family:var(--font-d);font-size:36px;font-weight:800;
+  line-height:1;margin-bottom:6px;}
+.home-sub{color:var(--text-dim);font-size:14px;margin-bottom:20px;}
+.spec-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.spec-card{background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:10px 12px;}
+.spec-val{font-family:var(--font-d);font-size:20px;font-weight:800;color:var(--cyan);}
+.spec-lbl{font-size:11px;color:var(--text-dim);font-weight:500;margin-top:2px;}
+
+/* NAV */
+.progress-wrap{padding:16px;padding-bottom:4px;}
+.prog-bg{background:var(--bg3);border-radius:99px;height:6px;margin-bottom:6px;overflow:hidden;}
+.prog-fill{height:6px;border-radius:99px;transition:width .4s ease;}
+.prog-fill.cyan{background:var(--cyan);}
+.prog-txt{font-size:11px;color:var(--text-dim);font-family:var(--font-d);letter-spacing:1px;}
+.section-nav{padding:12px 16px 16px;display:flex;flex-direction:column;gap:10px;}
+.nav-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;
+  position:relative;overflow:hidden;transition:border-color .15s;}
+.nav-card:active{background:var(--bg3);}
+.nav-card.done{border-color:var(--green);}
+.nav-card-icon{width:52px;height:52px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.nc-cyan{background:var(--cyan-dim);}
+.nc-blue{background:var(--blue-dim);}
+.nc-green{background:var(--green-dim);}
+.nc-red{background:var(--red-dim);}
+.nc-yellow{background:var(--yellow-dim);}
+.nav-card-body{flex:1;min-width:0;}
+.nav-card-title{font-family:var(--font-d);font-size:18px;font-weight:800;margin-bottom:2px;}
+.nav-card-desc{font-size:12px;color:var(--text-dim);}
+.nav-card-arrow{color:var(--text-dim);font-size:18px;flex-shrink:0;}
+.nav-done-badge{position:absolute;top:10px;right:12px;background:var(--green);color:#000;
+  font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;
+  font-family:var(--font-d);letter-spacing:1px;}
+
+/* SCROLL */
+.scroll-body{flex:1;overflow-y:auto;padding-bottom:32px;}
+.section-title{font-family:var(--font-d);font-size:13px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--cyan);padding:16px 16px 8px;}
+
+/* THEORY */
+.theory-block{margin:0 16px 12px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;}
+.theory-hdr{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;
+  background:var(--bg3);}
+.theory-hdr-title{font-family:var(--font-d);font-size:16px;font-weight:800;flex:1;}
+.theory-hdr-arrow{font-size:14px;color:var(--text-dim);transition:transform .2s;}
+.theory-block.open .theory-hdr-arrow{transform:rotate(180deg);}
+.theory-body{padding:14px;display:none;}
+.theory-block.open .theory-body{display:block;}
+.theory-p{font-size:14px;line-height:1.65;color:var(--text-dim);margin-bottom:10px;}
+.theory-p:last-child{margin-bottom:0;}
+.theory-p strong{color:var(--text);font-weight:600;}
+.param-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;}
+.param-table th{background:var(--bg3);color:var(--text-dim);font-family:var(--font-d);
+  font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:8px 10px;text-align:left;}
+.param-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+.param-table tr:last-child td{border-bottom:none;}
+.tag{display:inline-block;border-radius:4px;padding:1px 6px;
+  font-family:var(--font-d);font-size:11px;font-weight:700;}
+.tag-cyan{background:var(--cyan-dim);color:var(--cyan);border:1px solid #06b6d488;}
+.tag-orange{background:var(--orange-dim);color:var(--orange);border:1px solid var(--orange-mid);}
+.tag-green{background:var(--green-dim);color:var(--green);border:1px solid #22c55e88;}
+.tag-red{background:var(--red-dim);color:var(--red);border:1px solid #ef444488;}
+.tag-yellow{background:var(--yellow-dim);color:var(--yellow);border:1px solid #f59e0b88;}
+
+/* R407C CYCLE DIAGRAM */
+.cycle-diagram{margin:0 16px 12px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:16px;}
+.cycle-title{font-family:var(--font-d);font-size:13px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin-bottom:14px;}
+.cycle-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative;}
+.cycle-node{background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:10px;text-align:center;position:relative;}
+.cycle-node.hot{border-color:#ef4444aa;}
+.cycle-node.cold{border-color:#06b6d4aa;}
+.cycle-node-icon{font-size:24px;margin-bottom:4px;}
+.cycle-node-name{font-family:var(--font-d);font-size:14px;font-weight:800;}
+.cycle-node-state{font-size:11px;color:var(--text-dim);margin-top:2px;}
+.cycle-arrow{text-align:center;font-size:20px;color:var(--text-dim);
+  display:flex;align-items:center;justify-content:center;}
+.cycle-center{grid-column:1/-1;text-align:center;padding:8px 0;
+  font-size:11px;color:var(--text-dim);font-family:var(--font-d);letter-spacing:1px;}
+
+/* ALARM PANEL */
+.alarm-panel{margin:0 16px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.alarm-panel-hdr{background:var(--bg3);padding:10px 14px;font-family:var(--font-d);
+  font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);}
+.alarm-row{display:flex;align-items:center;padding:10px 14px;
+  border-bottom:1px solid var(--border);gap:10px;}
+.alarm-row:last-child{border-bottom:none;}
+.alarm-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.alarm-dot.alarm{background:var(--yellow);}
+.alarm-dot.trip{background:var(--red);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.alarm-name{flex:1;font-size:13px;color:var(--text-dim);}
+.alarm-val{font-family:var(--font-d);font-size:16px;font-weight:800;}
+.alarm-val.alarm-c{color:var(--yellow);}
+.alarm-val.trip-c{color:var(--red);}
+.alarm-type{font-family:var(--font-d);font-size:10px;font-weight:700;
+  padding:2px 6px;border-radius:4px;letter-spacing:1px;flex-shrink:0;}
+.alarm-type.at-alarm{background:var(--yellow-dim);color:var(--yellow);}
+.alarm-type.at-trip{background:var(--red-dim);color:var(--red);}
+
+/* SIMULATOR */
+.sim-prog-wrap{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;}
+.sim-prog-nums{display:flex;justify-content:space-between;font-family:var(--font-d);
+  font-size:12px;color:var(--text-dim);margin-bottom:6px;}
+.sim-prog-nums span:first-child{color:var(--cyan);font-weight:700;}
+.sim-phase-lbl{font-family:var(--font-d);font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--text-dim);margin-top:8px;}
+.sim-phase-lbl span{color:var(--cyan);}
+
+.step-card{margin:8px 16px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;overflow:hidden;}
+.step-card.active-step{border-color:var(--cyan);background:#050e10;}
+.step-card.done-step{border-color:var(--green);opacity:.7;}
+.step-card.locked-step{opacity:.3;pointer-events:none;}
+.step-card-hdr{padding:12px 14px;display:flex;align-items:flex-start;gap:10px;}
+.step-num{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-family:var(--font-d);font-size:14px;font-weight:800;
+  flex-shrink:0;background:var(--bg3);color:var(--text-dim);}
+.step-card.active-step .step-num{background:var(--cyan);color:#000;}
+.step-card.done-step .step-num{background:var(--green);color:#000;}
+.step-card-info{flex:1;min-width:0;}
+.step-phase-tag{font-family:var(--font-d);font-size:10px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
+.step-title{font-family:var(--font-d);font-size:16px;font-weight:700;
+  line-height:1.2;margin-bottom:4px;}
+.step-desc{font-size:13px;color:var(--text-dim);line-height:1.5;}
+.step-body{padding:0 14px 14px;display:none;}
+.step-card.active-step .step-body{display:block;}
+.step-att{background:var(--yellow-dim);border:1px solid #f59e0b66;
+  border-radius:8px;padding:10px 12px;font-size:13px;color:var(--yellow);
+  margin-bottom:10px;display:flex;gap:8px;}
+.step-ctrl{background:var(--blue-dim);border:1px solid #3b82f666;
+  border-radius:8px;padding:10px 12px;margin-bottom:10px;}
+.step-ctrl-lbl{font-family:var(--font-d);font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--blue);font-weight:700;margin-bottom:4px;}
+.step-ctrl-val{font-family:var(--font-d);font-size:17px;font-weight:800;}
+.step-btn{width:100%;padding:14px;background:var(--cyan);color:#000;border:none;
+  border-radius:10px;font-family:var(--font-d);font-size:16px;font-weight:800;
+  letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:4px;}
+.step-btn:active{opacity:.85;}
+.step-btn:disabled{background:var(--bg4);color:var(--text-dim);cursor:not-allowed;}
+.step-input-wrap{margin-bottom:10px;}
+.step-input-lbl{font-size:12px;color:var(--text-dim);font-family:var(--font-d);
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;display:block;}
+.step-input{width:100%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:8px;padding:12px 14px;font-family:var(--font-d);font-size:18px;
+  font-weight:700;color:var(--text);outline:none;transition:border-color .15s;}
+.step-input:focus{border-color:var(--cyan);}
+.step-input.valid{border-color:var(--green);}
+.step-input.invalid{border-color:var(--red);}
+.input-fb{font-size:12px;margin-top:4px;font-weight:600;}
+.input-fb.ok{color:var(--green);}
+.input-fb.err{color:var(--red);}
+
+/* INLINE TIMER */
+.inline-timer{background:var(--bg3);border:1px solid var(--border);
+  border-radius:12px;padding:14px;margin-bottom:10px;}
+.inline-timer-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.inline-timer-lbl{font-family:var(--font-d);font-size:13px;font-weight:700;letter-spacing:1px;}
+.inline-timer-mode{font-family:var(--font-d);font-size:10px;color:var(--text-dim);
+  letter-spacing:1px;}
+.inline-timer-bar-bg{background:var(--bg4);border-radius:99px;height:8px;
+  margin-bottom:8px;overflow:hidden;}
+.inline-timer-bar{height:8px;border-radius:99px;transition:width .9s linear;}
+.inline-timer-row{display:flex;justify-content:space-between;align-items:center;}
+.inline-timer-digits{font-family:var(--font-d);font-size:28px;font-weight:800;
+  letter-spacing:2px;}
+.inline-timer-start{padding:8px 16px;border-radius:8px;border:none;
+  font-family:var(--font-d);font-size:13px;font-weight:800;cursor:pointer;letter-spacing:1px;}
+.inline-timer-start.idle{background:var(--cyan);color:#000;}
+.inline-timer-start.running{background:var(--bg4);color:var(--text-dim);cursor:not-allowed;}
+.inline-timer-start.done-btn{background:var(--green);color:#000;}
+
+/* SIM COMPLETE */
+.sim-complete{margin:16px;padding:20px;background:linear-gradient(135deg,#051510,#050a15);
+  border:1px solid var(--green);border-radius:14px;text-align:center;}
+.sim-complete-icon{font-size:48px;margin-bottom:12px;}
+.sim-complete-title{font-family:var(--font-d);font-size:28px;font-weight:800;
+  color:var(--green);margin-bottom:8px;}
+.sim-complete-sub{font-size:14px;color:var(--text-dim);margin-bottom:16px;}
+.sim-stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.sim-stat{background:var(--bg3);border-radius:8px;padding:12px;}
+.sim-stat-val{font-family:var(--font-d);font-size:24px;font-weight:800;color:var(--cyan);}
+.sim-stat-lbl{font-size:11px;color:var(--text-dim);margin-top:2px;}
+
+/* SOP */
+.sop-step{margin:4px 16px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:14px;display:flex;gap:12px;}
+.sop-num{width:28px;height:28px;border-radius:6px;background:var(--bg3);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-d);
+  font-size:13px;font-weight:800;color:var(--text-dim);flex-shrink:0;}
+.sop-body{flex:1;}
+.sop-title{font-family:var(--font-d);font-size:15px;font-weight:800;margin-bottom:4px;}
+.sop-desc{font-size:13px;color:var(--text-dim);line-height:1.5;}
+.sop-alert{margin-top:8px;background:var(--orange-dim);border-left:3px solid var(--orange);
+  border-radius:0 6px 6px 0;padding:8px 10px;font-size:12px;color:var(--orange);}
+.sop-check{width:28px;height:28px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;}
+.sop-check.checked{background:var(--green);border-color:var(--green);}
+
+/* TROUBLE */
+.trouble-card{margin:4px 16px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;}
+.trouble-hdr{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.trouble-hdr:active{background:var(--bg3);}
+.trouble-idx{background:var(--red-dim);color:var(--red);border:1px solid #ef444488;
+  border-radius:6px;padding:3px 8px;font-family:var(--font-d);font-size:13px;font-weight:800;flex-shrink:0;}
+.trouble-title{font-family:var(--font-d);font-size:15px;font-weight:800;flex:1;}
+.trouble-arr{color:var(--text-dim);font-size:14px;flex-shrink:0;}
+.trouble-card.open .trouble-arr{transform:rotate(180deg);}
+.trouble-body{padding:0 14px 14px;display:none;}
+.trouble-card.open .trouble-body{display:block;}
+.trouble-slbl{font-family:var(--font-d);font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
+.cause-item{font-size:13px;color:var(--text-dim);padding:6px 0 6px 14px;
+  position:relative;border-bottom:1px solid var(--border);line-height:1.45;}
+.cause-item:last-child{border-bottom:none;}
+.cause-item::before{content:'';position:absolute;left:0;top:14px;
+  width:6px;height:6px;border-radius:50%;background:var(--red);}
+.action-item{font-size:13px;color:var(--text);padding:6px 0 6px 14px;
+  position:relative;border-bottom:1px solid var(--border);line-height:1.45;}
+.action-item:last-child{border-bottom:none;}
+.action-item::before{content:'';position:absolute;left:0;top:14px;
+  width:6px;height:6px;border-radius:50%;background:var(--green);}
+
+/* HOW / WHY / TOOLS */
+.step-detail-grid{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.step-detail-card{border-radius:8px;padding:9px 12px;display:flex;gap:10px;align-items:flex-start;}
+.step-detail-card.how{background:#051505;border:1px solid #22c55e44;}
+.step-detail-card.why{background:#0a0800;border:1px solid #06b6d444;}
+.step-detail-card.tools{background:#050a18;border:1px solid #3b82f644;}
+.step-detail-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+.step-detail-label{font-family:var(--font-d);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
+.step-detail-card.how .step-detail-label{color:var(--green);}
+.step-detail-card.why .step-detail-label{color:var(--cyan);}
+.step-detail-card.tools .step-detail-label{color:var(--blue);}
+.step-detail-text{font-size:12px;color:var(--text-dim);line-height:1.5;}
+.step-detail-text strong{color:var(--text);font-weight:600;}
+.vendor-note{background:#0a0512;border:1px solid #a855f766;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#a855f7;line-height:1.5;display:flex;gap:8px;align-items:flex-start;}
+
+/* QUIZ */
+.quiz-header{padding:16px;background:var(--bg2);border-bottom:1px solid var(--border);}
+.quiz-q-count{font-family:var(--font-d);font-size:12px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--cyan);margin-bottom:6px;}
+.quiz-question{font-family:var(--font-d);font-size:20px;font-weight:800;line-height:1.3;}
+.quiz-opts{padding:16px;display:flex;flex-direction:column;gap:10px;}
+.quiz-opt{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  padding:14px 16px;font-size:14px;cursor:pointer;line-height:1.4;}
+.quiz-opt:active{background:var(--bg3);}
+.quiz-opt.correct{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.quiz-opt.wrong{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+.quiz-opt.reveal{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.quiz-fb{margin:0 16px;padding:12px 14px;border-radius:10px;font-size:13px;
+  line-height:1.5;display:none;}
+.quiz-fb.ok{background:var(--green-dim);border:1px solid #22c55e66;color:var(--green);}
+.quiz-fb.err{background:var(--red-dim);border:1px solid #ef444466;color:var(--red);}
+.quiz-next-btn{margin:12px 16px;width:calc(100% - 32px);background:var(--cyan);color:#000;
+  border:none;border-radius:10px;padding:14px;font-family:var(--font-d);
+  font-size:16px;font-weight:800;cursor:pointer;display:none;}
+.quiz-result{margin:16px;padding:20px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;text-align:center;display:none;}
+.quiz-score{font-family:var(--font-d);font-size:56px;font-weight:800;
+  color:var(--cyan);line-height:1;}
+.quiz-pass{color:var(--green);font-family:var(--font-d);font-size:22px;font-weight:800;}
+.quiz-fail{color:var(--red);font-family:var(--font-d);font-size:22px;font-weight:800;}
+
+/* BTN */
+.btn-primary{display:block;width:calc(100% - 32px);margin:0 16px 10px;
+  background:var(--cyan);color:#000;border:none;border-radius:10px;padding:16px;
+  font-family:var(--font-d);font-size:18px;font-weight:800;cursor:pointer;
+  letter-spacing:1px;text-transform:uppercase;}
+.btn-primary:active{opacity:.85;}
+.btn-secondary{display:block;width:calc(100% - 32px);margin:0 16px 10px;
+  background:transparent;color:var(--text-dim);border:1px solid var(--border);
+  border-radius:10px;padding:14px;font-family:var(--font-d);font-size:16px;
+  font-weight:700;cursor:pointer;}
+.spacer{height:16px;}
+.warning-banner{margin:0 16px 12px;padding:10px 14px;background:var(--orange-dim);
+  border:1px solid var(--orange-mid);border-radius:10px;font-size:13px;color:var(--orange);}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="s-home" class="screen active">
+  <div class="home-hero">
+    <div class="home-badge">
+      <div class="home-badge-dot"></div>
+      <span class="home-badge-txt">Módulo 03 · RU1101</span>
+    </div>
+    <div class="home-title">UNIDAD DE<br>PREENFRIAMIENTO</div>
+    <div class="home-sub">Refrigerante R407C · Control PLC local · Salida ≤ 8 °C</div>
+    <div class="spec-row">
+      <div class="spec-card"><div class="spec-val">R407C</div><div class="spec-lbl">Refrigerante</div></div>
+      <div class="spec-card"><div class="spec-val">&lt; 8 °C</div><div class="spec-lbl">T° salida aire</div></div>
+      <div class="spec-card"><div class="spec-val">≤ 28 °C (82 °F)</div><div class="spec-lbl">T° agua máx</div></div>
+      <div class="spec-card"><div class="spec-val">&gt; 9 bar</div><div class="spec-lbl">P aire para arranque</div></div>
+    </div>
+  </div>
+  <div class="progress-wrap">
+    <div class="prog-bg"><div class="prog-fill cyan" id="home-fill" style="width:0%"></div></div>
+    <div class="prog-txt" id="home-txt">0 de 5 secciones completadas</div>
+  </div>
+  <div class="section-nav">
+    <div class="nav-card" id="nav-teoria" onclick="go('s-teoria')">
+      <div class="nav-card-icon nc-cyan">❄️</div>
+      <div class="nav-card-body"><div class="nav-card-title">Descripción del Sistema</div>
+        <div class="nav-card-desc">Ciclo R407C, parámetros y alarmas DCS</div></div>
+      <div class="nav-card-arrow">›</div></div>
+    <div class="nav-card" id="nav-arranque" onclick="go('s-arranque')">
+      <div class="nav-card-icon nc-blue">🎮</div>
+      <div class="nav-card-body"><div class="nav-card-title">Simulador de Arranque</div>
+        <div class="nav-card-desc">10 pasos · Timers integrados · Sec. 3.2</div></div>
+      <div class="nav-card-arrow">›</div></div>
+    <div class="nav-card" id="nav-parada" onclick="go('s-parada')">
+      <div class="nav-card-icon nc-green">🛑</div>
+      <div class="nav-card-body"><div class="nav-card-title">SOP Parada Normal</div>
+        <div class="nav-card-desc">Procedimiento completo · Sec. 3.3</div></div>
+      <div class="nav-card-arrow">›</div></div>
+    <div class="nav-card" id="nav-trouble" onclick="go('s-trouble')">
+      <div class="nav-card-icon nc-red">⚡</div>
+      <div class="nav-card-body"><div class="nav-card-title">Diagnóstico de Anomalías</div>
+        <div class="nav-card-desc">5 fallas · causa → solución · Sec. 3.4</div></div>
+      <div class="nav-card-arrow">›</div></div>
+    <div class="nav-card" id="nav-quiz" onclick="startQuiz()">
+      <div class="nav-card-icon nc-yellow">📝</div>
+      <div class="nav-card-body"><div class="nav-card-title">Evaluación</div>
+        <div class="nav-card-desc">10 preguntas · Requiere 70% para aprobar</div></div>
+      <div class="nav-card-arrow">›</div></div>
+  </div>
+</div>
+
+<!-- TEORÍA -->
+<div id="s-teoria" class="screen">
+  <div class="hdr">
+    <div class="hdr-back" onclick="go('s-home')">‹</div>
+    <div class="hdr-info"><div class="hdr-tag">Módulo 03</div>
+      <div class="hdr-title">Descripción del Sistema</div></div>
+  </div>
+  <div class="scroll-body">
+    <div class="section-title">¿QUÉ ES LA RU1101?</div>
+
+    <div class="theory-block open">
+      <div class="theory-hdr" onclick="toggleBlock(this)">
+        <span>❄️</span>
+        <span class="theory-hdr-title">Función y Descripción</span>
+        <span class="theory-hdr-arrow">▾</span>
+      </div>
+      <div class="theory-body">
+        <p class="theory-p">La RU1101 es la <strong>unidad de preenfriamiento</strong> del proceso. Su función es enfriar el aire comprimido que llega del AC1001 (~40°C) hasta <strong>5~8°C</strong> antes de que entre al sistema de purificación PPU1201.</p>
+        <p class="theory-p">Utiliza <strong>R407C</strong> como refrigerante. La capacidad frigorífica se ajusta automáticamente según la carga para garantizar que la temperatura de salida del aire sea siempre <strong>menor a 8°C</strong>.</p>
+        <p class="theory-p">El sistema de control es un <strong>PLC local</strong>. Los parámetros operativos importantes (temperatura entrada/salida del aire, estado de funcionamiento) están cableados directamente al <strong>DCS</strong>.</p>
+        <p class="theory-p">⚠️ <strong>Nota invernal:</strong> En temporada de frío, si la temperatura del aire comprimido ya es suficientemente baja, la RU1101 puede no necesitar arrancar. En paradas largas requiere mantenimiento periódico.</p>
+      </div>
+    </div>
+
+    <div class="section-title">CICLO DE REFRIGERACIÓN R407C</div>
+    <div class="cycle-diagram">
+      <div class="cycle-title">CICLO BÁSICO — 4 COMPONENTES</div>
+      <div class="cycle-wrap">
+        <div class="cycle-node hot">
+          <div class="cycle-node-icon">🔥</div>
+          <div class="cycle-node-name">COMPRESOR</div>
+          <div class="cycle-node-state">Gas a alta P y T°</div>
+        </div>
+        <div class="cycle-arrow">→</div>
+        <div class="cycle-node hot">
+          <div class="cycle-node-icon">💧</div>
+          <div class="cycle-node-name">CONDENSADOR</div>
+          <div class="cycle-node-state">Rechaza calor al agua</div>
+        </div>
+        <div class="cycle-center">↓ Líquido sub-enfriado ↓</div>
+        <div class="cycle-node cold">
+          <div class="cycle-node-icon">💨</div>
+          <div class="cycle-node-name">EVAPORADOR</div>
+          <div class="cycle-node-state">Absorbe calor del aire</div>
+        </div>
+        <div class="cycle-arrow">←</div>
+        <div class="cycle-node cold">
+          <div class="cycle-node-icon">🔽</div>
+          <div class="cycle-node-name">V. EXPANSIÓN</div>
+          <div class="cycle-node-state">Reduce P y T°</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;font-size:12px;color:var(--text-dim);line-height:1.5;">
+        El aire del proceso pasa por el <strong style="color:var(--cyan)">evaporador</strong> donde cede su calor al refrigerante R407C. El agua de enfriamiento retira el calor en el <strong style="color:var(--orange)">condensador</strong>.
+      </div>
+    </div>
+
+    <div class="section-title">PARÁMETROS OPERATIVOS</div>
+    <div class="theory-block">
+      <div class="theory-hdr" onclick="toggleBlock(this)">
+        <span>📊</span>
+        <span class="theory-hdr-title">Valores Clave de Operación</span>
+        <span class="theory-hdr-arrow">▾</span>
+      </div>
+      <div class="theory-body">
+        <table class="param-table">
+          <tr><th>Parámetro</th><th>Valor</th></tr>
+          <tr><td>T° salida aire (proceso)</td><td><span class="tag tag-cyan">&lt; 8 °C</span></td></tr>
+          <tr><td>T° agua enfriamiento (máx)</td><td><span class="tag tag-orange">≤ 28 °C</span></td></tr>
+          <tr><td>T° ambiente mínima operación</td><td><span class="tag tag-orange">&gt; 0 °C</span></td></tr>
+          <tr><td>Presión aire proceso para arrancar</td><td><span class="tag tag-cyan">&gt; 9 bar</span></td></tr>
+          <tr><td>Agua antes del arranque</td><td>Abrir V5506 · <span class="tag tag-orange">3 min antes</span></td></tr>
+          <tr><td>Verificar presiones R407C</td><td><span class="tag tag-orange">5 min</span> después del arranque</td></tr>
+          <tr><td>Verificar drenaje separador</td><td>Cada <span class="tag tag-cyan">1 hora</span></td></tr>
+          <tr><td>Verificar fugas refrigerante</td><td>Cada <span class="tag tag-cyan">1 semana</span></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-title">ALARMAS DCS (K391y.00000YK)</div>
+    <div class="alarm-panel">
+      <div class="alarm-panel-hdr">Temperatura Entrada Aire — TIA-1101</div>
+      <div class="alarm-row">
+        <div class="alarm-dot alarm"></div>
+        <div class="alarm-name">Alarma T° entrada alta</div>
+        <div class="alarm-val alarm-c">45 °C</div>
+        <div class="alarm-type at-alarm">ALARM</div>
+      </div>
+    </div>
+    <div class="alarm-panel">
+      <div class="alarm-panel-hdr">Temperatura Salida Aire — TIA-1102</div>
+      <div class="alarm-row">
+        <div class="alarm-dot alarm"></div>
+        <div class="alarm-name">Alarma T° salida alta (aire caliente)</div>
+        <div class="alarm-val alarm-c">14 °C</div>
+        <div class="alarm-type at-alarm">ALARM</div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+    <button class="btn-primary" onclick="markDone('teoria');go('s-home')">✓ Sección completada</button>
+  </div>
+</div>
+
+<!-- SIMULADOR -->
+<div id="s-arranque" class="screen">
+  <div class="hdr">
+    <div class="hdr-back" onclick="confirmBack()">‹</div>
+    <div class="hdr-info"><div class="hdr-tag">Sec. 3.2</div>
+      <div class="hdr-title">Simulador de Arranque</div></div>
+    <div class="hdr-badge" id="sim-badge">0/10</div>
+  </div>
+  <div class="sim-prog-wrap">
+    <div class="sim-prog-nums">
+      <span id="sim-done-txt">Paso 0 de 10</span>
+      <span id="sim-pct-txt">0%</span>
+    </div>
+    <div class="prog-bg"><div class="prog-fill cyan" id="sim-fill" style="width:0%"></div></div>
+    <div class="sim-phase-lbl">Fase: <span id="sim-phase-txt">Pre-arranque</span></div>
+  </div>
+  <div class="scroll-body" id="sim-scroll"></div>
+</div>
+
+<!-- PARADA -->
+<div id="s-parada" class="screen">
+  <div class="hdr">
+    <div class="hdr-back" onclick="go('s-home')">‹</div>
+    <div class="hdr-info"><div class="hdr-tag">Sec. 3.3</div>
+      <div class="hdr-title">SOP Parada Normal</div></div>
+  </div>
+  <div class="scroll-body">
+    <div class="section-title">PARADA NORMAL RU1101</div>
+    <div class="warning-banner">ℹ️ La parada de la RU1101 es sencilla. El compresor de refrigerante se detiene automáticamente al pulsar STOP.</div>
+    <div id="sop-wrap"></div>
+    <div class="spacer"></div>
+    <button class="btn-primary" onclick="markDone('parada');go('s-home')">✓ SOP revisado</button>
+  </div>
+</div>
+
+<!-- TROUBLE -->
+<div id="s-trouble" class="screen">
+  <div class="hdr">
+    <div class="hdr-back" onclick="go('s-home')">‹</div>
+    <div class="hdr-info"><div class="hdr-tag">Sec. 3.4</div>
+      <div class="hdr-title">Diagnóstico de Anomalías</div></div>
+  </div>
+  <div class="scroll-body">
+    <div class="section-title">TABLA DE ANOMALÍAS — RU1101</div>
+    <div id="trouble-wrap"></div>
+    <div class="spacer"></div>
+    <button class="btn-primary" onclick="markDone('trouble');go('s-home')">✓ Sección completada</button>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="s-quiz" class="screen">
+  <div class="hdr">
+    <div class="hdr-back" onclick="go('s-home')">‹</div>
+    <div class="hdr-info"><div class="hdr-tag">Evaluación</div>
+      <div class="hdr-title">Módulo 03 — RU1101</div></div>
+    <div class="hdr-badge" id="quiz-badge">1/10</div>
+  </div>
+  <div class="scroll-body">
+    <div class="prog-bg" style="margin:8px 16px 0;">
+      <div class="prog-fill cyan" id="quiz-fill" style="width:10%"></div>
+    </div>
+    <div class="quiz-header">
+      <div class="quiz-q-count" id="quiz-q-count">Pregunta 1 de 10</div>
+      <div class="quiz-question" id="quiz-question">Cargando...</div>
+    </div>
+    <div class="quiz-opts" id="quiz-opts"></div>
+    <div class="quiz-fb" id="quiz-fb"></div>
+    <button class="quiz-next-btn" id="quiz-next" onclick="nextQuestion()">Siguiente →</button>
+    <div class="quiz-result" id="quiz-result">
+      <div class="quiz-score" id="quiz-score-num">0</div>
+      <div style="color:var(--text-dim);font-size:14px;margin-bottom:4px;">de 10 correctas</div>
+      <div id="quiz-verdict"></div>
+      <div style="height:12px;"></div>
+      <button class="btn-primary" onclick="markDone('quiz');go('s-home')" style="margin:0;">Volver al Módulo</button>
+      <button class="btn-secondary" onclick="startQuiz()" style="width:100%;margin:8px 0 0;">Repetir evaluación</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════
+// DATA
+// ════════════════════════════════
+
+// Inline timers state (indexed by step)
+// step 1 (idx 1) = timer 3 min (water supply)
+// step 5 (idx 5) = timer 5 min (check pressures)
+const TIMER_STEPS = {
+  1: { label:'Suministro agua 3 min', realSec:180, simSec:18, id:'t1' },
+  5: { label:'Esperar 5 min post-arranque', realSec:300, simSec:20, id:'t5' }
+};
+
+const STEPS = [
+  { num:'3.2.1', phase:'Pre-arranque', title:'Verificar alimentación eléctrica — energizar PLC',
+    desc:'Comprobar que la alimentación eléctrica del compresor de refrigerante R407C sea normal. Energizar el sistema de control PLC local.',
+    attention:null, control:'Alimentación normal · Sin fallos en breaker ni protecciones',
+    how:'Verificar el estado del breaker principal del tablero eléctrico local de la RU1101. Encender el PLC local y confirmar que la pantalla de estado inicialice sin errores.',
+    why:'El PLC local gestiona el control de capacidad automático. Si hay fallo eléctrico, la unidad puede no arrancar o perder el control de temperatura de salida, afectando la calidad del aire hacia la PPU1201.',
+    tools:'Tablero eléctrico local RU1101 · PLC local con pantalla de estado',
+    input:null },
+
+  { num:'3.2.2', phase:'Pre-arranque', title:'Abrir V5506 — Agua 3 min antes del arranque',
+    desc:'Abrir la válvula V5506 para suministrar agua de enfriamiento al equipo. Verificar temperatura del agua y temperatura ambiente.',
+    attention:'T° agua de enfriamiento alta o T° ambiente muy baja afectan negativamente la operación.',
+    control:'Ambiente: > 0°C (> 32°F) · Agua enfriamiento: ≤ 28°C (≤ 82°F) · V5506: ABIERTA',
+    how:'1) Abrir manualmente V5506 (entrada agua al condensador RU1101). 2) Leer el termómetro local del agua. 3) Iniciar el timer de 3 minutos antes de continuar.',
+    why:'El condensador necesita flujo de agua establecido antes de arrancar el compresor de refrigerante. Sin agua, el R407C no puede rechazar calor → presión de alta sube rápidamente → trip por alta presión. En invierno (<0°C / 32°F) la RU1101 puede no ser necesaria.',
+    tools:'Termómetro local del agua de enfriamiento · Timer (3 minutos)',
+    input:null, timerKey:1 },
+
+  { num:'3.2.3', phase:'Pre-arranque', title:'Verificar presión del refrigerante R407C',
+    desc:'Comprobar que los manómetros de presión del refrigerante R407C (alta y baja presión) muestren lecturas normales en frío.',
+    attention:null, control:'Presiones R407C en frío: normales · Referencia a 25°C (77°F) ambiente: ~1.3 MPa (~185 PSI) igualadas',
+    how:'Leer los manómetros locales de alta y baja presión del circuito R407C ubicados en la unidad. Con el equipo en reposo, ambas presiones tienden a igualarse. Una presión muy baja indica posible fuga.',
+    why:'El R407C es una mezcla azeotrópica (R32/R125/R134a). Si hay fuga, la composición cambia y los valores de presión se desvían del esperado. Detectar fugas en frío es más fácil antes del arranque.',
+    tools:'Manómetros locales de alta y baja presión del circuito R407C (en la unidad RU1101)',
+    input:null },
+
+  { num:'3.2.4', phase:'Pre-arranque', title:'Confirmar flujo de aire comprimido por la unidad',
+    desc:'Verificar que hay flujo de aire comprimido del AC1001 pasando a través de la RU1101 con presión suficiente.',
+    attention:null, control:'P° proceso entrada: > 9 bar (> 130 PSI) para arrancar en paso siguiente',
+    how:'Verificar en el DCS la presión del proceso. Confirmar que el AC1001 está en operación y en carga. La presión de 9 bar (130 PSI) es la condición mínima de arranque de la RU1101.',
+    why:'La RU1101 debe enfriar aire a presión de proceso (~10 bar / 145 PSI). Arrancar sin flujo puede dañar los componentes internos del compresor de refrigerante (funciona como bomba de calor — necesita carga térmica).',
+    tools:'Lectura DCS TIA-1101 (T° entrada) · Presión proceso en el DCS',
+    input:null },
+
+  { num:'3.2.5', phase:'Arranque', title:'Girar switch a ON — ARRANQUE RU1101',
+    desc:'Girar el switch de la unidad a posición ON. La RU1101 arranca. El PLC local asume el control automático.',
+    attention:'Arrancar la RU1101 solamente cuando la presión del aire de proceso haya superado los 9 bar (130 PSI).',
+    control:'Condición arranque: P° proceso > 9 bar (> 130 PSI = > 0.9 MPa)',
+    how:'Girar el interruptor principal a posición ON en el tablero local de la RU1101. Observar el arranque del compresor de refrigerante. El PLC asume el control automático de capacidad.',
+    why:'Sin carga de aire suficiente, el compresor de refrigerante opera sin transferencia de calor → ciclos muy cortos → desgaste prematuro del compresor.',
+    tools:'Switch principal de la unidad RU1101 (tablero local)',
+    input:{ label:'Presión aire proceso actual (bar)', unit:'bar', min:9.1, max:15, hint:'> 9 bar (130 PSI) mínimo para arrancar' } },
+
+  { num:'3.2.6', phase:'Operación', title:'5 min post-arranque: verificar presiones R407C',
+    desc:'Esperar 5 minutos y verificar que las presiones de alta y baja del R407C sean normales. Si no, investigar y parar si es necesario.',
+    attention:'Alta presión excesiva o baja presión muy baja → parar la unidad y buscar la causa.',
+    control:'Alta presión: ~2.0 MPa (290 PSI) aprox · Baja presión: ~0.5 MPa (73 PSI) aprox (referencia a 25°C agua / 25°C aire entrada)',
+    how:'Leer los manómetros de alta y baja del R407C. Los valores normales dependen de la temperatura del agua de enfriamiento y la temperatura del aire a enfriar. Valores muy diferentes a los de referencia indican problema.',
+    why:'Los 5 minutos permiten alcanzar estado estacionario. Alta presión excesiva (agua caliente o sucia) dispara el presostato → stop. Baja presión muy baja (poco refrigerante o válvula de expansión bloqueada) → eficiencia cero y riesgo de golpe de líquido en compresor.',
+    tools:'Manómetros locales alta y baja presión R407C · Timer 5 minutos',
+    input:null, timerKey:5 },
+
+  { num:'3.2.7', phase:'Operación', title:'Verificar descenso de temperatura de salida del aire',
+    desc:'Comprobar que la temperatura del aire de salida (TIA-1102 en DCS) esté descendiendo progresivamente hacia el valor de operación normal.',
+    attention:null, control:'T° salida aire (TIA-1102): debe bajar hacia < 8°C (< 46°F) · Alarma DCS a 14°C (57°F)',
+    how:'Monitorear TIA-1102 en el DCS. La temperatura debe bajar desde ~40°C (104°F) hacia < 8°C (46°F) en 15–30 minutos según la carga. Si después de 30 min no ha bajado significativamente, hay un problema.',
+    why:'El objetivo crítico es enfriar el aire a < 8°C (46°F) antes de la purificación PPU1201. Aire más caliente tiene más humedad → adsorbedores de la PPU se saturan más rápido → ciclos de regeneración más frecuentes.',
+    tools:'Lectura DCS TIA-1102 (T° salida RU1101) · TIA-1101 (T° entrada) para calcular delta de enfriamiento',
+    input:{ label:'T° salida aire medida (°C)', unit:'°C', min:-5, max:8, hint:'< 8°C (< 46°F) en operación normal' } },
+
+  { num:'3.2.8', phase:'Operación', title:'Verificar drenaje del separador de agua (cada hora)',
+    desc:'Comprobar cada hora que el separador de agua esté drenando el condensado correctamente.',
+    attention:null, control:'Frecuencia: cada hora · Drenaje activo visible',
+    how:'Verificar visualmente o por indicación del PLC que el separador de agua (después del enfriamiento) esté drenando. El drenaje puede ser manual (válvula de purga) o automático (trampa de condensado).',
+    why:'Al enfriar el aire de ~40°C a ~7°C, se condensa gran cantidad de agua. Si no se drena, el condensado puede ingresar en forma líquida a la PPU1201 → saturación prematura de la alúmina activada.',
+    tools:'Trampa de condensado o válvula de purga del separador · Inspección visual del drenaje',
+    input:null },
+
+  { num:'3.2.9', phase:'Mantenimiento', title:'Inspección semanal de fugas de R407C',
+    desc:'Realizar una inspección visual semanal de toda la instalación buscando fugas de refrigerante R407C.',
+    attention:'El R407C es mezcla azeotrópica — una fuga cambia su composición. SIEMPRE recargar en fase líquida.',
+    control:'Frecuencia: semanal · Cero fugas toleradas',
+    how:'Inspeccionar todas las conexiones, válvulas y soldaduras del circuito. Buscar manchas de aceite (el aceite refrigerante sigue al refrigerante cuando fuga). Usar detector de gas electrónico si hay sospecha. El R407C es inodoro e incoloro.',
+    why:'El R407C tiene un potencial de calentamiento global (GWP) de 1,774 — regulado ambientalmente. La pérdida de refrigerante reduce la capacidad de enfriamiento → aire caliente a la PPU1201.',
+    tools:'Detector electrónico de refrigerante (recomendado) · Inspección visual de manchas de aceite · Registro de fugas',
+    input:null },
+
+  { num:'3.2.10', phase:'Mantenimiento', title:'Recarga de R407C — SIEMPRE en fase líquida',
+    desc:'Recargar el refrigerante para compensar pérdidas. Puede hacerse con la unidad en marcha, por la válvula de succión del compresor.',
+    attention:'CRÍTICO: Cargar R407C SIEMPRE en fase LÍQUIDA. Si se carga en gas, la composición cambia permanentemente.',
+    control:'Cargar hasta operación normal · Verificar presiones y T° salida al finalizar',
+    how:'Con la unidad en operación, conectar la botella de R407C invertida (para extraer líquido) a la válvula de carga en la línea de succión. Abrir lentamente. Esperar 5–10 minutos y observar. Repetir si necesario.',
+    why:'El R407C es mezcla de R32/R125/R134a con diferentes puntos de ebullición. Si se carga en fase gaseosa, se extrae preferentemente el componente más volátil → composición cambia → eficiencia reducida permanentemente.',
+    tools:'📘 Manual físico del fabricante RU1101 (suministrado con el equipo) · Botella R407C certificada · Manifold con manómetros calibrados · EPI para manejo de refrigerantes',
+    vendor:'El procedimiento detallado de recarga, los valores de supercalentamiento y subenfriamiento específicos, y las curvas P-T del compresor de refrigerante de la RU1101 están en el manual físico del fabricante suministrado con el equipo.',
+    input:null }
+];
+
+const SOP_STEPS = [
+  { num:'3.3.1', title:'Pulsar STOP', desc:'Presionar el botón de parada. El compresor de refrigerante se detiene automáticamente.', alert:null },
+  { num:'3.3.2', title:'Parada larga: mantener agua varios minutos', desc:'Para paradas de larga duración, mantener el suministro de agua de enfriamiento durante varios minutos después de la parada del compresor, para remover el calor residual.', alert:'Solo aplica para paradas largas (días o semanas). Para paradas cortas puede omitirse.' },
+  { num:'3.3.3', title:'Parada larga: cambio de aceite refrigerante', desc:'Si se requiere cambio o adición de aceite refrigerante, realizarlo con la unidad PARADA. Usar bomba de aceite manual o eléctrica para la adición.', alert:'El cambio de aceite solo puede realizarse con la unidad detenida. Solo personal capacitado.' }
+];
+
+const TROUBLES = [
+  { idx:'01', title:'La unidad no arranca', causes:['Falta de fase o voltaje bajo en la alimentación principal','Circuito abierto, falso contacto o conexión suelta en el circuito de alimentación','Disparo o daño del interruptor de protección de la alimentación principal'], actions:['Verificar la alimentación eléctrica e identificar la causa del problema. Reiniciar cuando sea normal','Revisar y reparar el circuito de alimentación principal','Resetear el interruptor de protección; revisar o reemplazar si es necesario'] },
+  { idx:'02', title:'Presión de refrigerante anormal (5 min post-arranque)', causes:['Refrigerante R407C insuficiente (fuga acumulada)','Temperatura agua de enfriamiento demasiado alta (condensación ineficiente)','Temperatura ambiente extremadamente baja (condensación excesiva)','Válvula de expansión averiada'], actions:['Verificar y buscar fugas con detector. Recargar R407C en fase líquida si necesario','Verificar y reducir T° del agua de enfriamiento (máx 28°C)','En invierno extremo, valorar si la RU1101 es necesaria','Contactar al proveedor de la unidad para revisión de la válvula'] },
+  { idx:'03', title:'La temperatura del aire no baja (TIA-1102 > 14°C)', causes:['Refrigerante insuficiente (presiones bajas)', 'Agua de enfriamiento insuficiente o caliente','Evaporador con acumulación de hielo o suciedad','Sensor TIA-1102 averiado'], actions:['Ver anomalía 02 para presiones de refrigerante','Verificar caudal y temperatura de agua (abrir V5506 completamente)','Parar la unidad y descongelar el evaporador','Verificar calibración del sensor TIA-1102'] },
+  { idx:'04', title:'Fuga de refrigerante R407C detectada', causes:['Desgaste en juntas o sellos del sistema','Corrosión o vibración en tuberías','Conexiones flojas post-mantenimiento'], actions:['Identificar y localizar el punto de fuga con detector de gases','Parar la unidad antes de hacer reparaciones en la parte de alta presión','Recuperar el R407C antes de abrir el circuito (normativa ambiental)','Reparar y verificar estanqueidad antes de recargar','Recargar SIEMPRE en fase líquida (mezcla azeotrópica)'] },
+  { idx:'05', title:'Compresor de refrigerante para repetidamente (trips)', causes:['Protección por alta presión activada → agua insuficiente o caliente','Protección por baja presión activada → refrigerante insuficiente','Sobrecarga térmica del motor del compresor','Temperatura de condensación demasiado alta'], actions:['Verificar caudal y temperatura del agua de enfriamiento (V5506 abierta, T° ≤28°C)','Comprobar nivel de refrigerante y buscar fugas','Verificar ventilación del área y temperatura ambiente','Si el problema persiste, consultar al proveedor de la unidad'] }
+];
+
+const QUIZ_Q = [
+  { q:'¿Cuál es la temperatura máxima de salida del aire en la RU1101 en operación normal?', opts:['< 5 °C','< 8 °C','< 12 °C','< 15 °C'], ans:1, exp:'Sección 3.1.3: La RU1101 garantiza una temperatura de salida del aire menor a 8°C.' },
+  { q:'¿Cuántos minutos antes del arranque se debe abrir la válvula V5506 (agua de enfriamiento)?', opts:['1 minuto','3 minutos','5 minutos','10 minutos'], ans:1, exp:'Sección 3.2.2: El agua de enfriamiento debe suministrarse al equipo 3 minutos antes de arrancar.' },
+  { q:'¿Cuál es la temperatura máxima permitida del agua de enfriamiento para la RU1101?', opts:['20 °C','24 °C','28 °C','35 °C'], ans:2, exp:'Sección 3.2.2: La temperatura del agua de enfriamiento debe ser ≤ 28°C.' },
+  { q:'¿Cuál es la presión mínima del aire de proceso para poder arrancar la RU1101?', opts:['5 bar','7 bar','9 bar','12 bar'], ans:2, exp:'Sección 3.2.5: Arrancar la RU1101 cuando la presión del aire de proceso haya subido a más de 9 bar.' },
+  { q:'¿Cuántos minutos después del arranque se deben verificar las presiones del refrigerante R407C?', opts:['1 minuto','3 minutos','5 minutos','15 minutos'], ans:2, exp:'Sección 3.2.6: Verificar presiones de alta y baja del R407C 5 minutos después del arranque.' },
+  { q:'¿Con qué frecuencia se debe verificar el drenaje del separador de agua durante operación?', opts:['Cada 30 minutos','Cada hora','Cada 4 horas','Una vez por turno'], ans:1, exp:'Sección 3.2.8: Verificar el drenaje del separador de agua cada hora.' },
+  { q:'¿Qué tipo de refrigerante usa la RU1101 y cómo se debe recargar?', opts:['R134a — puede recargarse en gas o líquido','R407C — siempre recargar en fase líquida','R22 — recargar en fase gaseosa','R410A — cualquier fase es válida'], ans:1, exp:'R407C es una mezcla azeotrópica. Una fuga cambia su composición, por lo que SIEMPRE debe recargarse en fase líquida.' },
+  { q:'Si la temperatura de salida del aire (TIA-1102) sube por encima de 14°C, ¿qué indica la alarma DCS?', opts:['Alarma de baja temperatura','Alarma de alta temperatura de salida (enfriamiento insuficiente)','Trip de alta presión del refrigerante','Falla del compresor de refrigerante'], ans:1, exp:'Instrument Signal List K391y.00000YK: TIA-1102 tiene alarma de alto a 14°C indicando enfriamiento insuficiente.' },
+  { q:'Durante paradas largas de la RU1101, ¿cuándo se puede realizar el cambio o adición de aceite refrigerante?', opts:['Con la unidad funcionando a media carga','Solo con la unidad completamente detenida','Tanto en marcha como parada, es indiferente','Solo durante el arranque'], ans:1, exp:'Sección 3.3.3: El cambio o adición de aceite debe realizarse con la unidad detenida, usando bomba manual o eléctrica.' },
+  { q:'¿Cuál es la condición de temperatura ambiente mínima para operar la RU1101?', opts:['Mayor a -10°C','Mayor a 0°C','Mayor a 5°C','Mayor a 15°C'], ans:1, exp:'Sección 3.2.2: La temperatura ambiente debe ser mayor a 0°C. En invierno con temperatura muy baja, la RU1101 puede no necesitar operar.' }
+];
+
+// ════════════════════════════════
+// STATE
+// ════════════════════════════════
+const KEY = 'asu_m03';
+let state = JSON.parse(localStorage.getItem(KEY)||'{}');
+let simStep = state.simStep||0;
+let sopChecks = state.sopChecks||{};
+let quizIdx=0, quizScore=0, quizAnswered=false;
+
+// Timer instances per step
+let timers = {}; // { stepIdx: { remaining, running, done, interval, mode } }
+
+// Restore timer done states
+STEPS.forEach((s,i)=>{
+  if(s.timerKey !== undefined){
+    const savedDone = state['timer_done_'+i] || false;
+    timers[i] = { remaining: TIMER_STEPS[s.timerKey].simSec, running:false, done:savedDone, interval:null, mode:'sim' };
+  }
+});
+
+function saveState(){
+  state.simStep = simStep;
+  state.sopChecks = sopChecks;
+  STEPS.forEach((s,i)=>{
+    if(s.timerKey !== undefined) state['timer_done_'+i] = timers[i].done;
+  });
+  localStorage.setItem(KEY, JSON.stringify(state));
+}
+
+// ════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='s-arranque') renderSim();
+  if(id==='s-parada')   renderSop();
+  if(id==='s-trouble')  renderTrouble();
+  if(id==='s-home')     renderHome();
+}
+function confirmBack(){
+  if(simStep>0&&simStep<STEPS.length){
+    if(confirm('¿Salir? Tu progreso se guardará.')) go('s-home');
+  } else { go('s-home'); }
+}
+
+// ════════════════════════════════
+// HOME
+// ════════════════════════════════
+function renderHome(){
+  const secs=['teoria','arranque','parada','trouble','quiz'];
+  const done=secs.filter(s=>state['done_'+s]).length;
+  document.getElementById('home-fill').style.width=(done/5*100)+'%';
+  document.getElementById('home-txt').textContent=`${done} de 5 secciones completadas`;
+  secs.forEach(s=>{
+    const c=document.getElementById('nav-'+s); if(!c) return;
+    if(state['done_'+s]){
+      c.classList.add('done');
+      if(!c.querySelector('.nav-done-badge')){
+        const el=document.createElement('div');
+        el.className='nav-done-badge'; el.textContent='LISTO'; c.appendChild(el);
+      }
+    }
+  });
+}
+function markDone(k){ state['done_'+k]=true; saveState(); }
+
+// ════════════════════════════════
+// THEORY
+// ════════════════════════════════
+function toggleBlock(hdr){ hdr.closest('.theory-block').classList.toggle('open'); }
+
+// ════════════════════════════════
+// SIMULATOR
+// ════════════════════════════════
+function renderSim(){
+  const wrap = document.getElementById('sim-scroll');
+  if(simStep>=STEPS.length){ renderSimComplete(wrap); updateSimProg(); return; }
+  wrap.innerHTML='';
+  STEPS.forEach((step,i)=>{
+    const card=document.createElement('div');
+    let cls='step-card';
+    if(i<simStep) cls+=' done-step';
+    else if(i===simStep) cls+=' active-step';
+    else cls+=' locked-step';
+    card.className=cls; card.id='step-'+i;
+
+    const phaseColor=step.phase==='Pre-arranque'?'var(--blue)':step.phase==='Arranque'?'var(--cyan)':step.phase==='Operação'?'var(--green)':'var(--text-dim)';
+
+    let inputHtml='';
+    if(step.input&&i===simStep){
+      inputHtml=`<div class="step-input-wrap">
+        <label class="step-input-lbl">${step.input.label}</label>
+        <input type="number" class="step-input" id="inp-${i}" placeholder="${step.input.hint}" inputmode="decimal" step="any">
+        <div class="input-fb" id="fb-${i}"></div></div>`;
+    }
+
+    let timerHtml='';
+    if(step.timerKey!==undefined && i===simStep){
+      timerHtml=buildInlineTimer(i, step.timerKey);
+    }
+
+    let attHtml=step.attention&&i===simStep?`<div class="step-att"><span>⚠️</span><span>${step.attention}</span></div>`:'';
+    let ctrlHtml=step.control&&i===simStep?`<div class="step-ctrl"><div class="step-ctrl-lbl">Rango de Control</div><div class="step-ctrl-val">${step.control}</div></div>`:'';
+    let vendorHtml=step.vendor&&i===simStep?`<div class="vendor-note"><span style="font-size:16px;flex-shrink:0">📘</span><span><strong>Manual físico del fabricante:</strong> ${step.vendor}</span></div>`:'';
+    let detailHtml='';
+    if(i===simStep&&(step.how||step.why||step.tools)){
+      detailHtml=`<div class="step-detail-grid">`;
+      if(step.how) detailHtml+=`<div class="step-detail-card how"><span class="step-detail-icon">🔧</span><div><div class="step-detail-label">Cómo se hace</div><div class="step-detail-text">${step.how}</div></div></div>`;
+      if(step.why) detailHtml+=`<div class="step-detail-card why"><span class="step-detail-icon">💡</span><div><div class="step-detail-label">Por qué importa</div><div class="step-detail-text">${step.why}</div></div></div>`;
+      if(step.tools) detailHtml+=`<div class="step-detail-card tools"><span class="step-detail-icon">📐</span><div><div class="step-detail-label">Herramienta / Instrumento</div><div class="step-detail-text">${step.tools}</div></div></div>`;
+      detailHtml+=`</div>`;
+    }
+
+    const timerDone = step.timerKey!==undefined ? timers[i].done : true;
+    const btnDisabled = (step.timerKey!==undefined && !timerDone) ? 'disabled' : '';
+    let btnHtml=i===simStep?`<button class="step-btn" id="btn-${i}" onclick="confirmStep(${i})" ${btnDisabled}>${step.input?'✓ Registrar y Confirmar':'✓ Paso Completado'}</button>`:'';
+
+    card.innerHTML=`
+      <div class="step-card-hdr">
+        <div class="step-num">${i<simStep?'✓':i+1}</div>
+        <div class="step-card-info">
+          <div class="step-phase-tag" style="color:${phaseColor}">${step.phase} · ${step.num}</div>
+          <div class="step-title">${step.title}</div>
+          <div class="step-desc">${i<=simStep?step.desc:''}</div>
+        </div>
+      </div>
+      <div class="step-body">${attHtml}${ctrlHtml}${vendorHtml}${detailHtml}${timerHtml}${inputHtml}${btnHtml}</div>`;
+    wrap.appendChild(card);
+  });
+  updateSimProg();
+  setTimeout(()=>{ const el=document.getElementById('step-'+simStep); if(el) el.scrollIntoView({behavior:'smooth',block:'center'}); },100);
+}
+
+function buildInlineTimer(stepIdx, timerKey){
+  const cfg = TIMER_STEPS[timerKey];
+  const t = timers[stepIdx];
+  const simSec = cfg.simSec;
+  const realSec = cfg.realSec;
+  const totalForMode = t.mode==='real'? realSec : simSec;
+  const rem = t.done ? 0 : (t.running ? t.remaining : totalForMode);
+  const pct = t.done ? 100 : (1 - rem/totalForMode)*100;
+  const barColor = t.done?'var(--green)':t.running?'var(--cyan)':'var(--border)';
+
+  const modeDisabled = (t.running||t.done)?'disabled':'';
+  const btnText = t.done?'✓ Completado':t.running?'⏳ Corriendo...':'▶ Iniciar';
+  const btnCls = t.done?'done-btn':t.running?'running':'idle';
+
+  return `<div class="inline-timer" id="itimer-${stepIdx}">
+    <div class="inline-timer-hdr">
+      <span class="inline-timer-lbl">${cfg.label}</span>
+      <span class="inline-timer-mode">${t.mode==='real'?'Modo real':'Modo simulación'}</span>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <button onclick="setTimerMode(${stepIdx},'sim')" ${modeDisabled}
+        style="flex:1;padding:6px;border-radius:6px;border:1px solid ${t.mode==='sim'?'var(--cyan)':'var(--border)'};
+        background:${t.mode==='sim'?'var(--cyan-dim)':'transparent'};color:${t.mode==='sim'?'var(--cyan)':'var(--text-dim)'};
+        font-family:var(--font-d);font-size:11px;font-weight:700;cursor:pointer;">
+        ⚡ SIM ${t.mode==='sim'?'('+simSec+'s)':''}
+      </button>
+      <button onclick="setTimerMode(${stepIdx},'real')" ${modeDisabled}
+        style="flex:1;padding:6px;border-radius:6px;border:1px solid ${t.mode==='real'?'var(--cyan)':'var(--border)'};
+        background:${t.mode==='real'?'var(--cyan-dim)':'transparent'};color:${t.mode==='real'?'var(--cyan)':'var(--text-dim)'};
+        font-family:var(--font-d);font-size:11px;font-weight:700;cursor:pointer;">
+        🏭 REAL ${t.mode==='real'?'('+Math.round(realSec/60)+'min)':''}
+      </button>
+    </div>
+    <div class="inline-timer-bar-bg">
+      <div class="inline-timer-bar" id="ibar-${stepIdx}" style="width:${pct}%;background:${barColor};"></div>
+    </div>
+    <div class="inline-timer-row">
+      <div class="inline-timer-digits" id="idig-${stepIdx}" style="color:${t.done?'var(--green)':t.running?'var(--cyan)':'var(--text)'}">
+        ${t.done?'✓ OK':formatTime(rem)}
+      </div>
+      <button class="inline-timer-start ${btnCls}" id="itbtn-${stepIdx}"
+        onclick="startInlineTimer(${stepIdx})" ${t.done||t.running?'disabled':''}>
+        ${btnText}
+      </button>
+    </div>
+  </div>`;
+}
+
+function setTimerMode(stepIdx, mode){
+  const t=timers[stepIdx];
+  if(t.running||t.done) return;
+  t.mode=mode;
+  const timerKey = STEPS[stepIdx].timerKey;
+  t.remaining = mode==='real'? TIMER_STEPS[timerKey].realSec : TIMER_STEPS[timerKey].simSec;
+  renderSim();
+}
+
+function startInlineTimer(stepIdx){
+  const t=timers[stepIdx];
+  if(t.running||t.done) return;
+  t.running=true;
+  const timerKey=STEPS[stepIdx].timerKey;
+  t.remaining=t.mode==='real'?TIMER_STEPS[timerKey].realSec:TIMER_STEPS[timerKey].simSec;
+  const total=t.remaining;
+
+  // Update button
+  const btn=document.getElementById('itbtn-'+stepIdx);
+  if(btn){ btn.textContent='⏳ Corriendo...'; btn.disabled=true; btn.className='inline-timer-start running'; }
+
+  t.interval=setInterval(()=>{
+    t.remaining--;
+    const pct=(1-t.remaining/total)*100;
+    const bar=document.getElementById('ibar-'+stepIdx);
+    const dig=document.getElementById('idig-'+stepIdx);
+    if(bar) bar.style.width=pct+'%';
+    if(dig) dig.textContent=formatTime(t.remaining);
+
+    if(t.remaining<=0){
+      clearInterval(t.interval);
+      t.interval=null;
+      t.running=false;
+      t.done=true;
+      saveState();
+      // Update visuals
+      if(bar){ bar.style.width='100%'; bar.style.background='var(--green)'; }
+      if(dig){ dig.textContent='✓ OK'; dig.style.color='var(--green)'; }
+      const btn2=document.getElementById('itbtn-'+stepIdx);
+      if(btn2){ btn2.textContent='✓ Completado'; btn2.className='inline-timer-start done-btn'; }
+      // Unlock confirm button
+      const cb=document.getElementById('btn-'+stepIdx);
+      if(cb){ cb.disabled=false; }
+    }
+  },1000);
+}
+
+function confirmStep(i){
+  const step=STEPS[i];
+  if(step.timerKey!==undefined && !timers[i].done) return;
+  if(step.input){
+    const inp=document.getElementById('inp-'+i);
+    const fb=document.getElementById('fb-'+i);
+    const val=parseFloat(inp.value);
+    if(isNaN(val)||inp.value===''){fb.className='input-fb err';fb.textContent='⚠ Ingresa un valor antes de continuar.';return;}
+    if(val>step.input.max){inp.className='step-input invalid';fb.className='input-fb err';fb.textContent=`⚠ Valor fuera de rango. Máximo: ${step.input.max} ${step.input.unit}`;return;}
+    if(val<step.input.min){inp.className='step-input invalid';fb.className='input-fb err';fb.textContent=`⚠ Valor por debajo del mínimo: ${step.input.min} ${step.input.unit}`;return;}
+    inp.className='step-input valid';fb.className='input-fb ok';fb.textContent=`✓ Valor registrado: ${val} ${step.input.unit}`;
+    setTimeout(advanceStep,800);
+  } else { advanceStep(); }
+}
+
+function advanceStep(){
+  simStep++; saveState();
+  if(simStep>=STEPS.length){ markDone('arranque'); renderSim(); }
+  else renderSim();
+}
+
+function updateSimProg(){
+  const done=Math.min(simStep,STEPS.length);
+  const pct=Math.round(done/STEPS.length*100);
+  document.getElementById('sim-badge').textContent=`${done}/${STEPS.length}`;
+  document.getElementById('sim-done-txt').textContent=`Paso ${done} de ${STEPS.length}`;
+  document.getElementById('sim-pct-txt').textContent=pct+'%';
+  document.getElementById('sim-fill').style.width=pct+'%';
+  const phase=simStep<STEPS.length?STEPS[simStep].phase:'Completado';
+  document.getElementById('sim-phase-txt').textContent=phase;
+}
+
+function renderSimComplete(wrap){
+  wrap.innerHTML=`
+    <div class="sim-complete">
+      <div class="sim-complete-icon">🎉</div>
+      <div class="sim-complete-title">ARRANQUE COMPLETADO</div>
+      <div class="sim-complete-sub">Has completado los 10 pasos del procedimiento de arranque de la RU1101</div>
+      <div class="sim-stat-row">
+        <div class="sim-stat"><div class="sim-stat-val">10</div><div class="sim-stat-lbl">Pasos confirmados</div></div>
+        <div class="sim-stat"><div class="sim-stat-val">100%</div><div class="sim-stat-lbl">Completado</div></div>
+      </div>
+      <button class="step-btn" onclick="resetSim()">↺ Reiniciar Simulador</button>
+      <button class="step-btn" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);margin-top:8px;" onclick="go('s-home')">Volver al Módulo</button>
+    </div>`;
+}
+
+function resetSim(){
+  simStep=0; state.simStep=0; state.done_arranque=false;
+  // Reset timers
+  STEPS.forEach((s,i)=>{
+    if(s.timerKey!==undefined){
+      clearInterval(timers[i].interval);
+      timers[i]={remaining:TIMER_STEPS[s.timerKey].simSec,running:false,done:false,interval:null,mode:'sim'};
+      state['timer_done_'+i]=false;
+    }
+  });
+  saveState(); renderSim();
+}
+
+function formatTime(s){
+  const m=Math.floor(s/60).toString().padStart(2,'0');
+  const sec=(s%60).toString().padStart(2,'0');
+  return `${m}:${sec}`;
+}
+
+// ════════════════════════════════
+// SOP PARADA
+// ════════════════════════════════
+function renderSop(){
+  const wrap=document.getElementById('sop-wrap'); wrap.innerHTML='';
+  SOP_STEPS.forEach((s,i)=>{
+    const div=document.createElement('div'); div.className='sop-step';
+    const checked=sopChecks[i];
+    div.innerHTML=`
+      <div class="sop-num" style="background:${checked?'var(--green)':'var(--bg3)'};color:${checked?'#000':'var(--text-dim)'}">${checked?'✓':s.num}</div>
+      <div class="sop-body">
+        <div class="sop-title">${s.title}</div>
+        <div class="sop-desc">${s.desc}</div>
+        ${s.alert?`<div class="sop-alert">⚠️ ${s.alert}</div>`:''}
+      </div>
+      <div class="sop-check ${checked?'checked':''}" onclick="toggleSop(${i})">${checked?'✓':''}</div>`;
+    wrap.appendChild(div);
+  });
+}
+function toggleSop(i){ sopChecks[i]=!sopChecks[i]; saveState(); renderSop(); }
+
+// ════════════════════════════════
+// TROUBLE
+// ════════════════════════════════
+function renderTrouble(){
+  const wrap=document.getElementById('trouble-wrap'); wrap.innerHTML='';
+  TROUBLES.forEach(t=>{
+    const div=document.createElement('div'); div.className='trouble-card';
+    const cHtml=t.causes.map(c=>`<div class="cause-item">${c}</div>`).join('');
+    const aHtml=t.actions.map(a=>`<div class="action-item">${a}</div>`).join('');
+    div.innerHTML=`
+      <div class="trouble-hdr" onclick="this.closest('.trouble-card').classList.toggle('open')">
+        <div class="trouble-idx">${t.idx}</div>
+        <div class="trouble-title">${t.title}</div>
+        <div class="trouble-arr">▾</div>
+      </div>
+      <div class="trouble-body">
+        <div class="trouble-slbl">Posibles causas</div>
+        <div>${cHtml}</div>
+        <div class="trouble-slbl" style="margin-top:10px;">Acciones correctivas</div>
+        <div>${aHtml}</div>
+      </div>`;
+    wrap.appendChild(div);
+  });
+}
+
+// ════════════════════════════════
+// QUIZ
+// ════════════════════════════════
+function startQuiz(){
+  quizIdx=0; quizScore=0; quizAnswered=false;
+  document.getElementById('quiz-result').style.display='none';
+  go('s-quiz'); renderQuestion();
+}
+function renderQuestion(){
+  const q=QUIZ_Q[quizIdx];
+  document.getElementById('quiz-badge').textContent=`${quizIdx+1}/10`;
+  document.getElementById('quiz-q-count').textContent=`Pregunta ${quizIdx+1} de 10`;
+  document.getElementById('quiz-question').textContent=q.q;
+  document.getElementById('quiz-fill').style.width=((quizIdx+1)/10*100)+'%';
+  document.getElementById('quiz-fb').style.display='none';
+  document.getElementById('quiz-next').style.display='none';
+  quizAnswered=false;
+  const opts=document.getElementById('quiz-opts'); opts.innerHTML='';
+  q.opts.forEach((opt,i)=>{
+    const btn=document.createElement('div'); btn.className='quiz-opt';
+    btn.textContent=opt; btn.onclick=()=>answerQuiz(i); opts.appendChild(btn);
+  });
+}
+function answerQuiz(chosen){
+  if(quizAnswered) return; quizAnswered=true;
+  const q=QUIZ_Q[quizIdx];
+  document.querySelectorAll('.quiz-opt').forEach((o,i)=>{
+    if(i===q.ans) o.classList.add('reveal');
+    else if(i===chosen&&chosen!==q.ans) o.classList.add('wrong');
+  });
+  if(chosen===q.ans) quizScore++;
+  const fb=document.getElementById('quiz-fb');
+  fb.className=`quiz-fb ${chosen===q.ans?'ok':'err'}`;
+  fb.textContent=(chosen===q.ans?'✓ Correcto — ':'✗ Incorrecto — ')+q.exp;
+  fb.style.display='block';
+  document.getElementById('quiz-next').style.display='block';
+}
+function nextQuestion(){
+  quizIdx++;
+  if(quizIdx>=QUIZ_Q.length) showResult();
+  else renderQuestion();
+}
+function showResult(){
+  document.getElementById('quiz-opts').innerHTML='';
+  document.getElementById('quiz-fb').style.display='none';
+  document.getElementById('quiz-next').style.display='none';
+  const res=document.getElementById('quiz-result'); res.style.display='block';
+  document.getElementById('quiz-score-num').textContent=quizScore;
+  const pass=quizScore>=7;
+  document.getElementById('quiz-verdict').innerHTML=pass
+    ?'<div class="quiz-pass">✓ APROBADO</div><p style="font-size:13px;color:var(--text-dim);margin-top:6px;">Módulo completado.</p>'
+    :'<div class="quiz-fail">✗ NO APROBADO</div><p style="font-size:13px;color:var(--text-dim);margin-top:6px;">Necesitas 7 de 10. Revisa y vuelve a intentar.</p>';
+  if(pass) markDone('quiz');
+}
+
+// ════════════════════════════════
+// INIT
+// ════════════════════════════════
+renderHome(); renderSop(); renderTrouble();
+</script>
+</body>
+</html>

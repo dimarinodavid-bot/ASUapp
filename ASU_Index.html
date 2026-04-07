@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ASU Venezuela 15TPD — App de Planta</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff6b1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ASU VEN">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--bg4:#22223a;
+  --orange:#ff6b1a;--orange-dim:#ff6b1a22;--orange-mid:#ff6b1a55;
+  --green:#22c55e;--green-dim:#22c55e18;
+  --red:#ef4444;--red-dim:#ef444418;
+  --yellow:#f59e0b;--yellow-dim:#f59e0b18;
+  --text:#e8e8f0;--text-dim:#8888aa;--border:#2a2a3f;
+  --font-d:'Barlow Condensed',sans-serif;
+  --font-b:'Barlow',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);
+  min-height:100vh;overflow-x:hidden;}
+
+/* ── SPLASH ── */
+#splash{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;z-index:200;transition:opacity .5s;}
+#splash.hidden{opacity:0;pointer-events:none;}
+.splash-logo{font-size:64px;margin-bottom:20px;animation:pulse-logo 2s infinite;}
+@keyframes pulse-logo{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+.splash-plant{font-family:var(--font-d);font-size:13px;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:10px;}
+.splash-title{font-family:var(--font-d);font-size:44px;font-weight:800;
+  line-height:1;text-align:center;margin-bottom:8px;}
+.splash-sub{font-size:13px;color:var(--text-dim);margin-bottom:40px;text-align:center;}
+.splash-bar-bg{width:200px;height:4px;background:var(--bg3);border-radius:99px;overflow:hidden;}
+.splash-bar{height:4px;background:var(--orange);border-radius:99px;
+  width:0%;transition:width .08s linear;}
+.splash-pct{font-family:var(--font-d);font-size:12px;color:var(--text-dim);
+  margin-top:8px;letter-spacing:1px;}
+
+/* ── MAIN ── */
+#main{opacity:0;transition:opacity .4s;}
+#main.visible{opacity:1;}
+
+/* HEADER */
+.hdr{background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:14px 16px;display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:100;}
+.hdr-logo{font-size:28px;}
+.hdr-info{flex:1;}
+.hdr-plant{font-family:var(--font-d);font-size:10px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:2px;}
+.hdr-title{font-family:var(--font-d);font-size:20px;font-weight:800;line-height:1;}
+.hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+.hdr-time{font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--orange);}
+.hdr-date{font-size:11px;color:var(--text-dim);}
+
+/* HERO SPECS */
+.hero{padding:16px 16px 12px;
+  background:linear-gradient(180deg,#160800 0%,var(--bg) 100%);}
+.spec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.spec-card{background:var(--bg2);border:1px solid var(--border);
+  border-radius:10px;padding:10px 8px;text-align:center;}
+.spec-val{font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--orange);}
+.spec-lbl{font-size:10px;color:var(--text-dim);margin-top:2px;line-height:1.2;}
+
+/* PROGRESS BAR */
+.prog-section{padding:12px 16px 4px;}
+.prog-label{display:flex;justify-content:space-between;
+  font-family:var(--font-d);font-size:11px;color:var(--text-dim);
+  letter-spacing:1px;margin-bottom:6px;}
+.prog-label span:first-child{text-transform:uppercase;}
+.prog-bg{background:var(--bg3);border-radius:99px;height:8px;overflow:hidden;}
+.prog-fill{height:8px;background:var(--orange);border-radius:99px;transition:width .6s ease;}
+
+/* QUICK ACCESS */
+.quick-section{padding:12px 16px 8px;}
+.quick-title{font-family:var(--font-d);font-size:12px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;}
+.quick-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.quick-card{background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:14px;cursor:pointer;display:flex;
+  align-items:center;gap:10px;text-decoration:none;color:inherit;}
+.quick-card:active{background:var(--bg3);}
+.quick-icon{font-size:26px;flex-shrink:0;}
+.quick-name{font-family:var(--font-d);font-size:15px;font-weight:800;
+  line-height:1.2;margin-bottom:2px;}
+.quick-desc{font-size:11px;color:var(--text-dim);}
+
+/* MODULE GRID */
+.mod-section{padding:8px 16px 4px;}
+.mod-title{font-family:var(--font-d);font-size:12px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;}
+
+.mod-card{background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;margin-bottom:8px;overflow:hidden;
+  cursor:pointer;text-decoration:none;color:inherit;display:block;}
+.mod-card:active{background:var(--bg3);}
+.mod-card.done{border-color:var(--green);}
+.mod-card-inner{padding:14px 16px;display:flex;align-items:center;gap:14px;}
+.mod-num-badge{width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-d);font-size:20px;font-weight:800;flex-shrink:0;}
+.mod-body{flex:1;min-width:0;}
+.mod-tag{font-family:var(--font-d);font-size:10px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
+.mod-name{font-family:var(--font-d);font-size:18px;font-weight:800;
+  margin-bottom:2px;line-height:1.1;}
+.mod-desc{font-size:12px;color:var(--text-dim);}
+.mod-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.mod-arrow{font-size:22px;color:var(--text-dim);}
+.mod-done-badge{background:var(--green);color:#000;font-family:var(--font-d);
+  font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:1px;}
+.mod-score{font-family:var(--font-d);font-size:12px;font-weight:700;color:var(--text-dim);}
+
+/* TOOL CARDS */
+.tool-card{background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;margin-bottom:8px;overflow:hidden;
+  cursor:pointer;text-decoration:none;color:inherit;display:block;}
+.tool-card:active{background:var(--bg3);}
+.tool-card-inner{padding:16px;display:flex;align-items:center;gap:14px;}
+.tool-icon{width:52px;height:52px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.tool-body{flex:1;}
+.tool-name{font-family:var(--font-d);font-size:20px;font-weight:800;margin-bottom:2px;}
+.tool-desc{font-size:12px;color:var(--text-dim);line-height:1.4;}
+.tool-arrow{font-size:22px;color:var(--text-dim);}
+
+/* ALERT BANNER */
+.alert-banner{margin:8px 16px;padding:12px 14px;border-radius:10px;
+  display:flex;align-items:center;gap:10px;display:none;}
+.alert-banner.show{display:flex;}
+.alert-banner.yellow{background:var(--yellow-dim);border:1px solid #f59e0b55;}
+.alert-banner.red{background:var(--red-dim);border:1px solid #ef444455;}
+.alert-text{font-family:var(--font-d);font-size:14px;font-weight:700;flex:1;}
+.alert-banner.yellow .alert-text{color:var(--yellow);}
+.alert-banner.red .alert-text{color:var(--red);}
+
+/* FOOTER */
+.footer{padding:16px;text-align:center;
+  font-size:11px;color:var(--text-dim);line-height:1.6;}
+.footer strong{color:var(--text-dim);}
+
+.spacer{height:16px;}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">🏭</div>
+  <div class="splash-plant">Planta Venezuela 15TPD</div>
+  <div class="splash-title">ASU<br>VENEZUELA</div>
+  <div class="splash-sub">LOLN-391/63 · AA-P23023 · Fortude</div>
+  <div class="splash-bar-bg">
+    <div class="splash-bar" id="splash-bar"></div>
+  </div>
+  <div class="splash-pct" id="splash-pct">Cargando...</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-logo">🏭</div>
+    <div class="hdr-info">
+      <div class="hdr-plant">ASU Venezuela 15TPD</div>
+      <div class="hdr-title">App de Planta</div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-time" id="clock">--:--</div>
+      <div class="hdr-date" id="dateline">--</div>
+    </div>
+  </div>
+
+  <div style="overflow-y:auto;height:calc(100vh - 62px);" id="scroll-root">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="spec-grid">
+        <div class="spec-card">
+          <div class="spec-val" style="color:#ef4444">391</div>
+          <div class="spec-lbl">Nm³/h LOX</div>
+        </div>
+        <div class="spec-card">
+          <div class="spec-val" style="color:#60a5fa">63</div>
+          <div class="spec-lbl">Nm³/h LIN</div>
+        </div>
+        <div class="spec-card">
+          <div class="spec-val">15 TPD</div>
+          <div class="spec-lbl">Capacidad diseño</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERT BANNER (shown if dashboard has alarms) -->
+    <div class="alert-banner" id="alert-banner">
+      <span style="font-size:20px">⚠️</span>
+      <span class="alert-text" id="alert-text"></span>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="prog-section">
+      <div class="prog-label">
+        <span>Progreso de formación</span>
+        <span id="prog-label-right">0 / 6 módulos</span>
+      </div>
+      <div class="prog-bg">
+        <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- QUICK ACCESS -->
+    <div class="quick-section">
+      <div class="quick-title">Acceso rápido</div>
+      <div class="quick-row">
+        <a class="quick-card" href="ASU_Module07_Dashboard.html">
+          <div class="quick-icon">📊</div>
+          <div>
+            <div class="quick-name">Dashboard DCS</div>
+            <div class="quick-desc">Parámetros · Semáforo</div>
+          </div>
+        </a>
+        <a class="quick-card" href="ASU_Module08_Turno.html">
+          <div class="quick-icon">📋</div>
+          <div>
+            <div class="quick-name">Libro de Turno</div>
+            <div class="quick-desc">Novedades · Entrega</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- MÓDULOS DE FORMACIÓN -->
+    <div class="mod-section">
+      <div class="mod-title">Módulos de Formación</div>
+
+      <a class="mod-card" id="card-m01" href="ASU_Module01_Base.html">
+        <div class="mod-card-inner">
+          <div class="mod-num-badge" style="background:#ff6b1a22;color:#ff6b1a">01</div>
+          <div class="mod-body">
+            <div class="mod-tag" style="color:#ff6b1a">Base Común</div>
+            <div class="mod-name">Formación Base</div>
+            <div class="mod-desc">La planta · Seguridad · DCS · Turno · 4 unidades</div>
+          </div>
+          <div class="mod-right">
+            <div class="mod-arrow">›</div>
+            <div class="mod-score" id="score-m01"></div>
+          </div>
+        </div>
+      </a>
+
+      <a class="mod-card" id="card-m02" href="ASU_Module02_AC1001.html">
+        <div class="mod-card-inner">
+          <div class="mod-num-badge" style="background:#f59e0b22;color:#f59e0b">02</div>
+          <div class="mod-body">
+            <div class="mod-tag" style="color:#f59e0b">AC1001</div>
+            <div class="mod-name">Compresor</div>
+            <div class="mod-desc">Arranque 20 pasos · Parada · 8 fallas · Quiz</div>
+          </div>
+          <div class="mod-right">
+            <div class="mod-arrow">›</div>
+            <div class="mod-score" id="score-m02"></div>
+          </div>
+        </div>
+      </a>
+
+      <a class="mod-card" id="card-m03" href="ASU_Module03_RU1101.html">
+        <div class="mod-card-inner">
+          <div class="mod-num-badge" style="background:#06b6d422;color:#06b6d4">03</div>
+          <div class="mod-body">
+            <div class="mod-tag" style="color:#06b6d4">RU1101</div>
+            <div class="mod-name">Preenfriamiento</div>
+            <div class="mod-desc">R407C · Timers integrados · 5 fallas · Quiz</div>
+          </div>
+          <div class="mod-right">
+            <div class="mod-arrow">›</div>
+            <div class="mod-score" id="score-m03"></div>
+          </div>
+        </div>
+      </a>
+
+      <a class="mod-card" id="card-m04" href="ASU_Module04_PPU1201.html">
+        <div class="mod-card-inner">
+          <div class="mod-num-badge" style="background:#a855f722;color:#a855f7">04</div>
+          <div class="mod-body">
+            <div class="mod-tag" style="color:#a855f7">PPU1201</div>
+            <div class="mod-name">Purificación</div>
+            <div class="mod-desc">Ciclo visual 15 pasos · Válvulas en vivo · 7 fallas</div>
+          </div>
+          <div class="mod-right">
+            <div class="mod-arrow">›</div>
+            <div class="mod-score" id="score-m04"></div>
+          </div>
+        </div>
+      </a>
+
+      <a class="mod-card" id="card-m05" href="ASU_Module05_ET401.html">
+        <div class="mod-card-inner">
+          <div class="mod-num-badge" style="background:#14b8a622;color:#14b8a6">05</div>
+          <div class="mod-body">
+            <div class="mod-tag" style="color:#14b8a6">ET401</div>
+            <div class="mod-name">Expansor</div>
+            <div class="mod-desc">Rampa 4 gradientes · Gauge RPM · 10 fallas</div>
+          </div>
+          <div class="mod-right">
+            <div class="mod-arrow">›</div>
+            <div class="mod-score" id="score-m05"></div>
+          </div>
+        </div>
+      </a>
+
+      <a class="mod-card" id="card-m06" href="ASU_Module06_ColdBox.html">
+        <div class="mod-card-inner">
+          <div class="mod-num-badge" style="background:#0ea5e922;color:#0ea5e9">06</div>
+          <div class="mod-body">
+            <div class="mod-tag" style="color:#0ea5e9">Cold Box</div>
+            <div class="mod-name">Columnas Destilación</div>
+            <div class="mod-desc">Diagrama interactivo C1/C2/K1/E1/E2 · SOP 27 pasos</div>
+          </div>
+          <div class="mod-right">
+            <div class="mod-arrow">›</div>
+            <div class="mod-score" id="score-m06"></div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- HERRAMIENTAS -->
+    <div class="mod-section">
+      <div class="mod-title">Herramientas de Turno</div>
+
+      <a class="tool-card" href="ASU_Module07_Dashboard.html">
+        <div class="tool-card-inner">
+          <div class="tool-icon" style="background:#ff6b1a22;">📊</div>
+          <div class="tool-body">
+            <div class="tool-name">Dashboard DCS</div>
+            <div class="tool-desc">Ingreso de valores · Semáforo verde/amarillo/rojo · 25 parámetros del K391y.00000YK · Historial de turnos</div>
+          </div>
+          <div class="tool-arrow">›</div>
+        </div>
+      </a>
+
+      <a class="tool-card" href="ASU_Module08_Turno.html">
+        <div class="tool-card-inner">
+          <div class="tool-icon" style="background:#6366f122;">📋</div>
+          <div class="tool-body">
+            <div class="tool-name">Comunicación de Turno</div>
+            <div class="tool-desc">Libro de novedades · Alarmas · Trabajos · Entrega estructurada · Historial de entregas</div>
+          </div>
+          <div class="tool-arrow">›</div>
+        </div>
+      </a>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <strong>ASU Venezuela 15TPD · LOLN-391/63</strong><br>
+      Doc. K391y.00000SM · AA-P23023 · Fortude<br>
+      App v1.0 · Todos los valores técnicos basados en el Manual Operativo oficial
+    </div>
+    <div class="spacer"></div>
+
+  </div><!-- /scroll-root -->
+</div><!-- /main -->
+
+<script>
+// ── RELOJ ──
+function updateClock(){
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('clock').textContent =
+    `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const days = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  document.getElementById('dateline').textContent =
+    `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+// ── LEER PROGRESO DE CADA MÓDULO desde localStorage ──
+function readProgress(){
+  // M01: asu_m01 → doneUnits array (4 unidades)
+  try{
+    const m01 = JSON.parse(localStorage.getItem('asu_m01')||'{}');
+    const done01 = (m01.doneUnits||[]).length;
+    if(done01>=4){ markDone('m01','4/4 unidades'); }
+    else if(done01>0){ markPartial('m01',`${done01}/4 unidades`); }
+  }catch(e){}
+
+  // M02–M06: asu_m0X → done_quiz:true para considerar completo
+  const mods = [
+    {key:'asu_m02',id:'m02',label:'Compresor'},
+    {key:'asu_m03',id:'m03',label:'RU1101'},
+    {key:'asu_m04',id:'m04',label:'PPU1201'},
+    {key:'asu_m05',id:'m05',label:'ET401'},
+    {key:'asu_m06',id:'m06',label:'Cold Box'},
+  ];
+  mods.forEach(m=>{
+    try{
+      const s = JSON.parse(localStorage.getItem(m.key)||'{}');
+      const sections = countSections(s);
+      if(s.done_quiz){ markDone(m.id,'Quiz aprobado'); }
+      else if(sections>0){ markPartial(m.id,`${sections} secc. iniciadas`); }
+    }catch(e){}
+  });
+
+  // Alert: check M07 for red/yellow params
+  try{
+    const m07 = JSON.parse(localStorage.getItem('asu_m07')||'{}');
+    const vals = m07.values||{};
+    if(Object.keys(vals).length>0){
+      checkAlerts(vals);
+    }
+  }catch(e){}
+
+  updateProgressBar();
+}
+
+function countSections(s){
+  return Object.keys(s).filter(k=>k.startsWith('done_')&&s[k]===true).length;
+}
+
+let doneCount = 0;
+
+function markDone(id, score){
+  const card = document.getElementById('card-'+id);
+  if(card){
+    card.classList.add('done');
+    const scoreEl = document.getElementById('score-'+id);
+    if(scoreEl){ scoreEl.textContent = '✓ '+score; scoreEl.style.color='var(--green)'; }
+  }
+  doneCount++;
+}
+
+function markPartial(id, score){
+  const scoreEl = document.getElementById('score-'+id);
+  if(scoreEl){ scoreEl.textContent = score; scoreEl.style.color='var(--yellow)'; }
+}
+
+function updateProgressBar(){
+  const total = 6; // 6 formación modules
+  const pct = Math.round(doneCount/total*100);
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-label-right').textContent = `${doneCount} / ${total} módulos`;
+}
+
+// ── ALERTAS DESDE DASHBOARD ──
+const ALARM_PARAMS = {
+  TIAS1206:{alarm:220,trip:240,dir:'high',label:'T° cámara EH1201'},
+  SIAS401:{alarm:47500,trip:50500,dir:'high',label:'Velocidad ET401'},
+  TIAS403:{alarm:70,trip:75,dir:'high',label:'T° cojinete ET401 exp'},
+  TIAS404:{alarm:70,trip:75,dir:'high',label:'T° cojinete ET401 bst'},
+  PIAS406:{alarm:0.6,trip:0.5,dir:'low',label:'P° aceite ET401'},
+  AIAS2:{alarm:99.5,trip:null,dir:'low',label:'Pureza LOX'},
+  LICAS2:{alarm:1350,trip:null,dir:'high',label:'Nivel K1'},
+};
+
+function checkAlerts(vals){
+  const trips=[], alarms=[];
+  Object.entries(ALARM_PARAMS).forEach(([id,p])=>{
+    const v = vals[id];
+    if(v===undefined||v===null||v==='') return;
+    const vn = parseFloat(v);
+    if(p.dir==='high'){
+      if(p.trip&&vn>=p.trip) trips.push(p.label);
+      else if(vn>=p.alarm) alarms.push(p.label);
+    } else {
+      if(p.trip&&vn<=p.trip) trips.push(p.label);
+      else if(vn<=p.alarm) alarms.push(p.label);
+    }
+  });
+  const banner = document.getElementById('alert-banner');
+  const text = document.getElementById('alert-text');
+  if(trips.length){
+    banner.className='alert-banner show red';
+    text.textContent=`🔴 TRIP activo: ${trips.join(' · ')}`;
+  } else if(alarms.length){
+    banner.className='alert-banner show yellow';
+    text.textContent=`⚠️ Alarma en dashboard: ${alarms.join(' · ')}`;
+  }
+}
+
+// ── SPLASH ANIMATION ──
+function runSplash(){
+  const bar = document.getElementById('splash-bar');
+  const pct = document.getElementById('splash-pct');
+  const messages = [
+    'Leyendo configuración...',
+    'Cargando módulos...',
+    'Verificando progreso...',
+    'Listo.',
+  ];
+  let p = 0;
+  const interval = setInterval(()=>{
+    p += 4 + Math.random()*6;
+    if(p>100) p=100;
+    bar.style.width = p+'%';
+    pct.textContent = messages[Math.floor(p/33)]||'Listo.';
+    if(p>=100){
+      clearInterval(interval);
+      setTimeout(()=>{
+        document.getElementById('splash').classList.add('hidden');
+        document.getElementById('main').classList.add('visible');
+        readProgress();
+      }, 400);
+    }
+  }, 60);
+}
+
+runSplash();
+
+// ── REGISTRO SERVICE WORKER (PWA offline) ──
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg=>console.log('[PWA] Service Worker registrado:', reg.scope))
+      .catch(err=>console.log('[PWA] Error SW:', err));
+  });
+}
+</script>
+</body>
+</html>

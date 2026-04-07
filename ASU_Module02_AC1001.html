@@ -1,0 +1,1888 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Módulo 02 — Compresor AC1001 | ASU Venezuela 15TPD</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg2: #12121a;
+  --bg3: #1a1a26;
+  --bg4: #22223a;
+  --orange: #ff6b1a;
+  --orange-dim: #ff6b1a33;
+  --orange-mid: #ff6b1a88;
+  --green: #22c55e;
+  --green-dim: #22c55e22;
+  --red: #ef4444;
+  --red-dim: #ef444422;
+  --yellow: #f59e0b;
+  --yellow-dim: #f59e0b22;
+  --blue: #3b82f6;
+  --blue-dim: #3b82f622;
+  --text: #e8e8f0;
+  --text-dim: #8888aa;
+  --border: #2a2a3f;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { font-size:16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SCREENS ── */
+.screen { display:none; min-height:100vh; flex-direction:column; }
+.screen.active { display:flex; }
+
+/* ── HEADER ── */
+.hdr {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky; top:0; z-index:100;
+}
+.hdr-back {
+  width:40px; height:40px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex; align-items:center; justify-content:center;
+  cursor: pointer; flex-shrink:0;
+  font-size:18px; color: var(--text-dim);
+}
+.hdr-back:active { background: var(--bg4); }
+.hdr-info { flex:1; min-width:0; }
+.hdr-tag {
+  font-family: var(--font-display);
+  font-size: 10px; font-weight:700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--orange); margin-bottom:2px;
+}
+.hdr-title {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight:800;
+  white-space: nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.hdr-badge {
+  background: var(--orange);
+  color: #000;
+  font-family: var(--font-display);
+  font-size: 11px; font-weight:800;
+  padding: 4px 8px; border-radius:6px;
+  letter-spacing:1px; flex-shrink:0;
+}
+
+/* ── HOME ── */
+.home-hero {
+  background: linear-gradient(180deg, #1a0d05 0%, var(--bg) 100%);
+  padding: 24px 16px 16px;
+  position: relative; overflow:hidden;
+}
+.home-hero::before {
+  content:'';
+  position:absolute; top:-60px; right:-60px;
+  width:200px; height:200px;
+  background: radial-gradient(circle, #ff6b1a15 0%, transparent 70%);
+  pointer-events:none;
+}
+.home-equip-badge {
+  display: inline-flex; align-items:center; gap:8px;
+  background: var(--orange-dim);
+  border: 1px solid var(--orange-mid);
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin-bottom:16px;
+}
+.home-equip-dot { width:8px; height:8px; border-radius:50%; background:var(--orange); }
+.home-equip-text {
+  font-family: var(--font-display);
+  font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  color: var(--orange);
+}
+.home-title {
+  font-family: var(--font-display);
+  font-size: 36px; font-weight:800; line-height:1;
+  margin-bottom: 6px;
+}
+.home-sub {
+  color: var(--text-dim);
+  font-size: 14px; font-weight:400;
+  margin-bottom:20px;
+}
+.spec-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px; margin-bottom: 0;
+}
+.spec-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.spec-val {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight:800;
+  color: var(--orange);
+}
+.spec-lbl {
+  font-size: 11px; color: var(--text-dim);
+  font-weight:500; margin-top:2px;
+}
+
+/* ── SECTION NAV ── */
+.section-nav {
+  padding: 16px;
+  display: flex; flex-direction:column; gap: 10px;
+}
+.nav-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex; align-items:center; gap: 14px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  position:relative; overflow:hidden;
+}
+.nav-card:active { background: var(--bg3); }
+.nav-card.done { border-color: var(--green); }
+.nav-card.locked { opacity: .45; pointer-events:none; }
+.nav-card-icon {
+  width:52px; height:52px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px; flex-shrink:0;
+}
+.nav-card-icon.orange { background: var(--orange-dim); }
+.nav-card-icon.blue   { background: var(--blue-dim); }
+.nav-card-icon.green  { background: var(--green-dim); }
+.nav-card-icon.red    { background: var(--red-dim); }
+.nav-card-icon.yellow { background: var(--yellow-dim); }
+.nav-card-body { flex:1; min-width:0; }
+.nav-card-title {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight:800;
+  margin-bottom:2px;
+}
+.nav-card-desc { font-size:12px; color:var(--text-dim); }
+.nav-card-arrow { color:var(--text-dim); font-size:18px; flex-shrink:0; }
+.nav-card-check {
+  position:absolute; top:10px; right:12px;
+  background: var(--green); color:#000;
+  font-size:10px; font-weight:800;
+  padding:2px 8px; border-radius:4px;
+  font-family: var(--font-display); letter-spacing:1px;
+}
+.progress-bar-wrap {
+  padding: 0 16px 16px;
+}
+.progress-bar-bg {
+  background: var(--bg3); border-radius:99px; height:6px;
+  margin-bottom:6px; overflow:hidden;
+}
+.progress-bar-fill {
+  height:6px; background:var(--orange); border-radius:99px;
+  transition: width .4s ease;
+}
+.progress-txt {
+  font-size:11px; color:var(--text-dim);
+  font-family: var(--font-display);
+  letter-spacing:1px;
+}
+
+/* ── SCROLL BODY ── */
+.scroll-body {
+  flex:1; overflow-y:auto;
+  padding-bottom: 32px;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size:13px; font-weight:700;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--orange); padding:16px 16px 8px;
+}
+
+/* ── THEORY ── */
+.theory-block {
+  margin: 0 16px 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+}
+.theory-block-hdr {
+  padding:12px 14px;
+  display:flex; align-items:center; gap:10px;
+  cursor:pointer;
+  background: var(--bg3);
+}
+.theory-block-hdr-icon { font-size:18px; }
+.theory-block-hdr-title {
+  font-family:var(--font-display);
+  font-size:16px; font-weight:800; flex:1;
+}
+.theory-block-hdr-arrow {
+  font-size:14px; color:var(--text-dim);
+  transition: transform .2s;
+}
+.theory-block.open .theory-block-hdr-arrow { transform:rotate(180deg); }
+.theory-block-body {
+  padding:14px;
+  display:none;
+}
+.theory-block.open .theory-block-body { display:block; }
+.theory-p {
+  font-size:14px; line-height:1.65;
+  color:var(--text-dim); margin-bottom:10px;
+}
+.theory-p:last-child { margin-bottom:0; }
+.theory-p strong { color:var(--text); font-weight:600; }
+.param-table {
+  width:100%; border-collapse:collapse;
+  font-size:13px; margin-top:6px;
+}
+.param-table th {
+  background:var(--bg3); color:var(--text-dim);
+  font-family:var(--font-display); font-size:11px;
+  font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  padding:8px 10px; text-align:left;
+}
+.param-table td {
+  padding:8px 10px; border-bottom:1px solid var(--border);
+  vertical-align:top;
+}
+.param-table tr:last-child td { border-bottom:none; }
+.tag-orange {
+  display:inline-block;
+  background: var(--orange-dim);
+  color:var(--orange);
+  border:1px solid var(--orange-mid);
+  border-radius:4px; padding:1px 6px;
+  font-family:var(--font-display); font-size:11px; font-weight:700;
+}
+.tag-red {
+  display:inline-block;
+  background: var(--red-dim);
+  color:var(--red);
+  border:1px solid #ef444488;
+  border-radius:4px; padding:1px 6px;
+  font-family:var(--font-display); font-size:11px; font-weight:700;
+}
+.tag-green {
+  display:inline-block;
+  background: var(--green-dim);
+  color:var(--green);
+  border:1px solid #22c55e88;
+  border-radius:4px; padding:1px 6px;
+  font-family:var(--font-display); font-size:11px; font-weight:700;
+}
+
+/* ── SIMULATOR ── */
+.sim-progress-wrap {
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  padding:12px 16px;
+}
+.sim-progress-nums {
+  display:flex; justify-content:space-between;
+  font-family:var(--font-display); font-size:12px;
+  color:var(--text-dim); margin-bottom:6px;
+}
+.sim-progress-nums span:first-child { color:var(--orange); font-weight:700; }
+.sim-phase-label {
+  font-family:var(--font-display); font-size:11px;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--text-dim); margin-top:8px;
+}
+.sim-phase-label span { color:var(--orange); }
+
+.step-card {
+  margin: 8px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+}
+.step-card.active-step {
+  border-color: var(--orange);
+  background: #1a1005;
+}
+.step-card.done-step {
+  border-color: var(--green);
+  opacity:.7;
+}
+.step-card.locked-step { opacity:.3; pointer-events:none; }
+.step-card-hdr {
+  padding:12px 14px;
+  display:flex; align-items:flex-start; gap:10px;
+}
+.step-num {
+  width:32px; height:32px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-size:14px; font-weight:800;
+  flex-shrink:0;
+  background:var(--bg3); color:var(--text-dim);
+}
+.step-card.active-step .step-num { background:var(--orange); color:#000; }
+.step-card.done-step .step-num   { background:var(--green); color:#000; }
+.step-card-info { flex:1; min-width:0; }
+.step-phase-tag {
+  font-family:var(--font-display); font-size:10px;
+  font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  margin-bottom:3px;
+}
+.step-title {
+  font-family:var(--font-display);
+  font-size:16px; font-weight:700; line-height:1.2;
+  margin-bottom:4px;
+}
+.step-desc {
+  font-size:13px; color:var(--text-dim); line-height:1.5;
+}
+.step-body {
+  padding: 0 14px 14px;
+  display:none;
+}
+.step-card.active-step .step-body { display:block; }
+.step-attention {
+  background:var(--yellow-dim);
+  border:1px solid #f59e0b66;
+  border-radius:8px; padding:10px 12px;
+  font-size:13px; color:var(--yellow);
+  margin-bottom:10px;
+  display:flex; gap:8px;
+}
+.step-attention-icon { flex-shrink:0; font-size:16px; }
+.step-control-range {
+  background:var(--blue-dim);
+  border:1px solid #3b82f666;
+  border-radius:8px; padding:10px 12px;
+  font-size:13px; margin-bottom:10px;
+}
+.step-control-range-lbl {
+  font-family:var(--font-display); font-size:10px;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--blue); font-weight:700; margin-bottom:4px;
+}
+.step-control-range-val {
+  font-family:var(--font-display); font-size:17px;
+  font-weight:800; color:var(--text);
+}
+.step-btn {
+  width:100%; padding:14px;
+  background:var(--orange); color:#000;
+  border:none; border-radius:10px;
+  font-family:var(--font-display); font-size:16px; font-weight:800;
+  letter-spacing:1px; text-transform:uppercase;
+  cursor:pointer; margin-top:4px;
+}
+.step-btn:active { opacity:.85; }
+.step-btn.confirm-btn { background:var(--green); }
+.step-btn.skip-btn {
+  background:transparent; border:1px solid var(--border);
+  color:var(--text-dim); margin-top:6px; font-size:13px;
+  padding:10px;
+}
+/* HOW / WHY / TOOLS */
+.step-detail-grid{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.step-detail-card{border-radius:8px;padding:9px 12px;display:flex;gap:10px;align-items:flex-start;}
+.step-detail-card.how{background:#051505;border:1px solid #22c55e44;}
+.step-detail-card.why{background:#150a00;border:1px solid #ff6b1a44;}
+.step-detail-card.tools{background:#050a18;border:1px solid #3b82f644;}
+.step-detail-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+.step-detail-label{font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
+.step-detail-card.how .step-detail-label{color:var(--green);}
+.step-detail-card.why .step-detail-label{color:var(--orange);}
+.step-detail-card.tools .step-detail-label{color:var(--blue);}
+.step-detail-text{font-size:12px;color:var(--text-dim);line-height:1.5;}
+.step-detail-text strong{color:var(--text);font-weight:600;}
+.vendor-note{background:#0a0512;border:1px solid #a855f766;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#a855f7;line-height:1.5;display:flex;gap:8px;align-items:flex-start;}
+
+/* value input */
+.step-input-wrap {
+  margin-bottom:10px;
+}
+.step-input-lbl {
+  font-size:12px; color:var(--text-dim);
+  font-family:var(--font-display); letter-spacing:1px;
+  text-transform:uppercase; margin-bottom:6px;
+  display:block;
+}
+.step-input {
+  width:100%; background:var(--bg3);
+  border:1px solid var(--border); border-radius:8px;
+  padding:12px 14px;
+  font-family:var(--font-display); font-size:18px; font-weight:700;
+  color:var(--text); outline:none;
+  transition:border-color .15s;
+}
+.step-input:focus { border-color:var(--orange); }
+.step-input.valid { border-color:var(--green); }
+.step-input.invalid { border-color:var(--red); }
+.input-feedback {
+  font-size:12px; margin-top:4px;
+  font-weight:600;
+}
+.input-feedback.ok { color:var(--green); }
+.input-feedback.err { color:var(--red); }
+
+/* SIM COMPLETE */
+.sim-complete {
+  margin:16px; padding:20px;
+  background: linear-gradient(135deg, #0f1a0a, #0a0f1a);
+  border:1px solid var(--green);
+  border-radius:14px; text-align:center;
+}
+.sim-complete-icon { font-size:48px; margin-bottom:12px; }
+.sim-complete-title {
+  font-family:var(--font-display); font-size:28px; font-weight:800;
+  color:var(--green); margin-bottom:8px;
+}
+.sim-complete-sub { font-size:14px; color:var(--text-dim); margin-bottom:16px; }
+.sim-stat-row {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:8px; margin-bottom:16px;
+}
+.sim-stat {
+  background:var(--bg3); border-radius:8px; padding:12px;
+}
+.sim-stat-val {
+  font-family:var(--font-display); font-size:24px; font-weight:800;
+  color:var(--orange);
+}
+.sim-stat-lbl { font-size:11px; color:var(--text-dim); margin-top:2px; }
+
+/* ── SHUTDOWN ── */
+.sop-step {
+  margin: 4px 16px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  display:flex; gap:12px;
+}
+.sop-num {
+  width:28px; height:28px; border-radius:6px;
+  background:var(--bg3);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-size:13px; font-weight:800;
+  color:var(--text-dim); flex-shrink:0;
+}
+.sop-body { flex:1; }
+.sop-title {
+  font-family:var(--font-display);
+  font-size:15px; font-weight:800; margin-bottom:4px;
+}
+.sop-desc { font-size:13px; color:var(--text-dim); line-height:1.5; }
+.sop-alert {
+  margin-top:8px;
+  background:var(--orange-dim);
+  border-left:3px solid var(--orange);
+  border-radius:0 6px 6px 0;
+  padding:8px 10px;
+  font-size:12px; color:var(--orange);
+}
+.sop-check {
+  width:28px; height:28px;
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:6px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.sop-check.checked  { background:var(--green); border-color:var(--green); }
+.sop-check.locked   { opacity:.3; pointer-events:none; cursor:not-allowed; }
+
+/* ── TIMER ── */
+.timer-wrap {
+  margin-top:12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+}
+.timer-mode-row {
+  display:flex; gap:8px; margin-bottom:14px;
+}
+.timer-mode-btn {
+  flex:1; padding:8px 6px;
+  border-radius:8px; border:1px solid var(--border);
+  background:var(--bg); cursor:pointer;
+  font-family:var(--font-display); font-size:12px; font-weight:700;
+  letter-spacing:1px; color:var(--text-dim);
+  transition:all .15s; text-align:center;
+}
+.timer-mode-btn.active {
+  background:var(--orange-dim); border-color:var(--orange);
+  color:var(--orange);
+}
+.timer-mode-btn:disabled { opacity:.4; pointer-events:none; }
+.timer-ring-wrap {
+  display:flex; flex-direction:column; align-items:center;
+  gap:8px; margin-bottom:14px;
+}
+.timer-ring-svg { transform:rotate(-90deg); }
+.timer-ring-bg  { fill:none; stroke:var(--bg4); stroke-width:8; }
+.timer-ring-fill {
+  fill:none; stroke:var(--orange); stroke-width:8;
+  stroke-linecap:round;
+  transition:stroke-dashoffset .9s linear;
+}
+.timer-ring-fill.done-ring { stroke:var(--green); }
+.timer-digits {
+  font-family:var(--font-display); font-size:36px; font-weight:800;
+  letter-spacing:2px; color:var(--text);
+  position:absolute;
+}
+.timer-ring-container {
+  position:relative; display:flex;
+  align-items:center; justify-content:center;
+  width:110px; height:110px;
+}
+.timer-label {
+  font-family:var(--font-display); font-size:11px;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--text-dim); text-align:center;
+}
+.timer-label.running-label { color:var(--orange); }
+.timer-label.done-label    { color:var(--green); }
+.timer-start-btn {
+  width:100%; padding:14px;
+  background:var(--orange); color:#000;
+  border:none; border-radius:10px;
+  font-family:var(--font-display); font-size:16px; font-weight:800;
+  cursor:pointer; letter-spacing:1px;
+}
+.timer-start-btn:active { opacity:.85; }
+.timer-start-btn:disabled {
+  background:var(--bg4); color:var(--text-dim); cursor:not-allowed;
+}
+.timer-done-banner {
+  background:var(--green-dim); border:1px solid #22c55e66;
+  border-radius:8px; padding:10px 14px;
+  font-family:var(--font-display); font-size:14px; font-weight:700;
+  color:var(--green); text-align:center; display:none;
+}
+.timer-warning {
+  background:var(--red-dim); border:1px solid #ef444466;
+  border-radius:8px; padding:8px 12px;
+  font-size:12px; color:var(--red);
+  margin-top:8px; display:none; text-align:center;
+}
+
+/* ── TROUBLESHOOTING ── */
+.trouble-card {
+  margin:4px 16px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+}
+.trouble-hdr {
+  padding:12px 14px;
+  display:flex; align-items:center; gap:10px;
+  cursor:pointer;
+}
+.trouble-hdr:active { background:var(--bg3); }
+.trouble-idx {
+  background:var(--red-dim);
+  color:var(--red);
+  border:1px solid #ef444488;
+  border-radius:6px; padding:3px 8px;
+  font-family:var(--font-display); font-size:13px; font-weight:800;
+  flex-shrink:0;
+}
+.trouble-title {
+  font-family:var(--font-display);
+  font-size:15px; font-weight:800; flex:1;
+}
+.trouble-arr { color:var(--text-dim); font-size:14px; flex-shrink:0; }
+.trouble-body { padding:0 14px 14px; display:none; }
+.trouble-card.open .trouble-body { display:block; }
+.trouble-card.open .trouble-arr { transform:rotate(180deg); }
+.trouble-section-lbl {
+  font-family:var(--font-display); font-size:10px;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--text-dim); margin-bottom:6px;
+}
+.cause-list { margin-bottom:10px; }
+.cause-item {
+  font-size:13px; color:var(--text-dim);
+  padding:6px 0 6px 14px; position:relative;
+  border-bottom:1px solid var(--border);
+  line-height:1.45;
+}
+.cause-item:last-child { border-bottom:none; }
+.cause-item::before {
+  content:''; position:absolute; left:0; top:14px;
+  width:6px; height:6px; border-radius:50%;
+  background:var(--red);
+}
+.action-item {
+  font-size:13px; color:var(--text);
+  padding:6px 0 6px 14px; position:relative;
+  border-bottom:1px solid var(--border);
+  line-height:1.45;
+}
+.action-item:last-child { border-bottom:none; }
+.action-item::before {
+  content:''; position:absolute; left:0; top:14px;
+  width:6px; height:6px; border-radius:50%;
+  background:var(--green);
+}
+
+/* ── QUIZ ── */
+.quiz-header {
+  padding: 16px;
+  background: var(--bg2);
+  border-bottom:1px solid var(--border);
+}
+.quiz-q-count {
+  font-family:var(--font-display); font-size:12px;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--orange); margin-bottom:6px;
+}
+.quiz-question {
+  font-family:var(--font-display); font-size:20px;
+  font-weight:800; line-height:1.3;
+}
+.quiz-opts { padding:16px; display:flex; flex-direction:column; gap:10px; }
+.quiz-opt {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; padding:14px 16px;
+  font-size:14px; cursor:pointer;
+  transition:border-color .15s, background .15s;
+  line-height:1.4;
+}
+.quiz-opt:active { background:var(--bg3); }
+.quiz-opt.correct { background:var(--green-dim); border-color:var(--green); color:var(--green); }
+.quiz-opt.wrong   { background:var(--red-dim);   border-color:var(--red);   color:var(--red); }
+.quiz-opt.reveal  { background:var(--green-dim); border-color:var(--green); color:var(--green); }
+.quiz-feedback {
+  margin:0 16px;
+  padding:12px 14px;
+  border-radius:10px; font-size:13px; line-height:1.5;
+  display:none;
+}
+.quiz-feedback.ok  { background:var(--green-dim); border:1px solid #22c55e66; color:var(--green); }
+.quiz-feedback.err { background:var(--red-dim);   border:1px solid #ef444466; color:var(--red); }
+.quiz-next-btn {
+  margin:12px 16px; width:calc(100% - 32px);
+  background:var(--orange); color:#000;
+  border:none; border-radius:10px; padding:14px;
+  font-family:var(--font-display); font-size:16px; font-weight:800;
+  cursor:pointer; display:none;
+}
+.quiz-result {
+  margin:16px; padding:20px;
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:14px; text-align:center; display:none;
+}
+.quiz-score {
+  font-family:var(--font-display); font-size:56px; font-weight:800;
+  color:var(--orange); line-height:1;
+}
+.quiz-score-lbl { font-size:14px; color:var(--text-dim); margin-bottom:16px; }
+.quiz-pass { color:var(--green); font-family:var(--font-display); font-size:22px; font-weight:800; }
+.quiz-fail { color:var(--red); font-family:var(--font-display); font-size:22px; font-weight:800; }
+
+/* ── ALARM PANEL ── */
+.alarm-panel {
+  margin: 0 16px 12px;
+  background:var(--bg2); border:1px solid var(--border); border-radius:12px;
+  overflow:hidden;
+}
+.alarm-panel-hdr {
+  background:var(--bg3); padding:10px 14px;
+  font-family:var(--font-display); font-size:13px; font-weight:700;
+  letter-spacing:2px; text-transform:uppercase; color:var(--text-dim);
+}
+.alarm-row {
+  display:flex; align-items:center;
+  padding:10px 14px; border-bottom:1px solid var(--border);
+  gap:10px;
+}
+.alarm-row:last-child { border-bottom:none; }
+.alarm-dot {
+  width:10px; height:10px; border-radius:50%; flex-shrink:0;
+}
+.alarm-dot.alarm { background:var(--yellow); }
+.alarm-dot.trip  { background:var(--red); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+.alarm-name { flex:1; font-size:13px; color:var(--text-dim); }
+.alarm-val {
+  font-family:var(--font-display); font-size:16px; font-weight:800;
+}
+.alarm-val.alarm-color { color:var(--yellow); }
+.alarm-val.trip-color  { color:var(--red); }
+.alarm-type-tag {
+  font-family:var(--font-display); font-size:10px; font-weight:700;
+  padding:2px 6px; border-radius:4px; letter-spacing:1px;
+  flex-shrink:0;
+}
+.alarm-type-tag.alarm-tag { background:var(--yellow-dim); color:var(--yellow); }
+.alarm-type-tag.trip-tag  { background:var(--red-dim); color:var(--red); }
+
+/* ── BTN STYLES ── */
+.btn-primary {
+  display:block; width:calc(100% - 32px); margin:0 16px 10px;
+  background:var(--orange); color:#000; border:none; border-radius:10px;
+  padding:16px; font-family:var(--font-display); font-size:18px; font-weight:800;
+  cursor:pointer; letter-spacing:1px; text-transform:uppercase;
+}
+.btn-primary:active { opacity:.85; }
+.btn-secondary {
+  display:block; width:calc(100% - 32px); margin:0 16px 10px;
+  background:transparent; color:var(--text-dim);
+  border:1px solid var(--border); border-radius:10px;
+  padding:14px; font-family:var(--font-display); font-size:16px; font-weight:700;
+  cursor:pointer;
+}
+
+/* misc */
+.divider { height:1px; background:var(--border); margin:8px 16px; }
+.spacer { height:16px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 1: HOME
+═══════════════════════════════════════════ -->
+<div id="s-home" class="screen active">
+  <div class="home-hero">
+    <div class="home-equip-badge">
+      <div class="home-equip-dot"></div>
+      <span class="home-equip-text">Módulo 02 · AC1001</span>
+    </div>
+    <div class="home-title">COMPRESOR<br>DE AIRE</div>
+    <div class="home-sub">Ingersoll Rand · Centrífugo 3 etapas · 1.12 MPaA (162.4 PSIa)</div>
+    <div class="spec-row">
+      <div class="spec-card">
+        <div class="spec-val">783 kW</div>
+        <div class="spec-lbl">Motor TECO · 13.8 kV</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-val">1.12 MPaA (162.4 PSIa)</div>
+        <div class="spec-lbl">Presión descarga</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-val">3,580 RPM</div>
+        <div class="spec-lbl">Velocidad nominal</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-val">IGV</div>
+        <div class="spec-lbl">Control entrada</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="home-progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-txt" id="home-progress-txt">0 de 5 secciones completadas</div>
+  </div>
+
+  <div class="section-nav">
+    <div class="nav-card" id="nav-teoria" onclick="go('s-teoria')">
+      <div class="nav-card-icon orange">⚙️</div>
+      <div class="nav-card-body">
+        <div class="nav-card-title">Descripción del Sistema</div>
+        <div class="nav-card-desc">Principio, parámetros clave y alarmas</div>
+      </div>
+      <div class="nav-card-arrow">›</div>
+    </div>
+
+    <div class="nav-card" id="nav-arranque" onclick="go('s-arranque')">
+      <div class="nav-card-icon blue">🎮</div>
+      <div class="nav-card-body">
+        <div class="nav-card-title">Simulador de Arranque</div>
+        <div class="nav-card-desc">20 pasos · Sec. 2.2 del Manual Operativo</div>
+      </div>
+      <div class="nav-card-arrow">›</div>
+    </div>
+
+    <div class="nav-card" id="nav-parada" onclick="go('s-parada')">
+      <div class="nav-card-icon green">🛑</div>
+      <div class="nav-card-body">
+        <div class="nav-card-title">SOP Parada Normal</div>
+        <div class="nav-card-desc">Procedimiento completo · Sec. 2.3</div>
+      </div>
+      <div class="nav-card-arrow">›</div>
+    </div>
+
+    <div class="nav-card" id="nav-trouble" onclick="go('s-trouble')">
+      <div class="nav-card-icon red">⚡</div>
+      <div class="nav-card-body">
+        <div class="nav-card-title">Diagnóstico de Anomalías</div>
+        <div class="nav-card-desc">8 fallas · causa → solución · Sec. 2.4</div>
+      </div>
+      <div class="nav-card-arrow">›</div>
+    </div>
+
+    <div class="nav-card" id="nav-quiz" onclick="startQuiz()">
+      <div class="nav-card-icon yellow">📝</div>
+      <div class="nav-card-body">
+        <div class="nav-card-title">Evaluación</div>
+        <div class="nav-card-desc">10 preguntas · Requiere 70% para aprobar</div>
+      </div>
+      <div class="nav-card-arrow">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 2: TEORÍA
+═══════════════════════════════════════════ -->
+<div id="s-teoria" class="screen">
+  <div class="hdr">
+    <div class="hdr-back" onclick="go('s-home')">‹</div>
+    <div class="hdr-info">
+      <div class="hdr-tag">Módulo 02</div>
+      <div class="hdr-title">Descripción del Sistema</div>
+    </div>
+  </div>
+  <div class="scroll-body">
+    <div class="section-title">¿QUÉ ES EL AC1001?</div>
+
+    <div class="theory-block open">
+      <div class="theory-block-hdr" onclick="toggleBlock(this)">
+        <span class="theory-block-hdr-icon">⚙️</span>
+        <span class="theory-block-hdr-title">Descripción General</span>
+        <span class="theory-block-hdr-arrow">▾</span>
+      </div>
+      <div class="theory-block-body">
+        <p class="theory-p">El AC1001 es un <strong>compresor centrífugo de 3 etapas</strong> fabricado por Ingersoll Rand, accionado por un motor eléctrico TECO de <strong>783 kW / 13,800 V / 3,580 RPM</strong>.</p>
+        <p class="theory-p">Su función es comprimir el aire ambiente (mezclado con aire de recirculación) desde la presión atmosférica hasta <strong>1.12 MPaA (162.4 PSIa)</strong> para alimentar el proceso de separación criogénica.</p>
+        <p class="theory-p">El compresor posee su <strong>propio sistema de control</strong> (Maestro Universal). Los parámetros operativos (presión, temperatura, vibración, apertura IGV) se transmiten al DCS de planta vía <strong>MODBUS</strong>.</p>
+      </div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-block-hdr" onclick="toggleBlock(this)">
+        <span class="theory-block-hdr-icon">🔄</span>
+        <span class="theory-block-hdr-title">Sistemas Integrados</span>
+        <span class="theory-block-hdr-arrow">▾</span>
+      </div>
+      <div class="theory-block-body">
+        <p class="theory-p"><strong>AF1001 — Filtro auto-limpiante:</strong> Retira partículas del aire de entrada. Debe inspeccionarse antes de cada arranque. Si está dañado o tapado, NO arrancar el compresor.</p>
+        <p class="theory-p"><strong>IGV — Inlet Guide Vane (válvula guía de entrada):</strong> Controla la capacidad del compresor. Debe estar <strong>completamente cerrada</strong> al momento del arranque.</p>
+        <p class="theory-p"><strong>Válvula anti-surge (blowoff):</strong> Protege contra el surge (inestabilidad de flujo). Debe estar <strong>completamente abierta</strong> antes del arranque. Control modulante automático.</p>
+        <p class="theory-p"><strong>Sistema de lubricación:</strong> Bomba auxiliar de aceite con precalentamiento. Debe correr <strong>mínimo 20 minutos</strong> antes del arranque y <strong>mínimo 30 minutos</strong> después de la parada.</p>
+      </div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-block-hdr" onclick="toggleBlock(this)">
+        <span class="theory-block-hdr-icon">📊</span>
+        <span class="theory-block-hdr-title">Parámetros Operativos Clave</span>
+        <span class="theory-block-hdr-arrow">▾</span>
+      </div>
+      <div class="theory-block-body">
+        <table class="param-table">
+          <tr>
+            <th>Parámetro</th>
+            <th>Valor</th>
+          </tr>
+          <tr>
+            <td>Presión descarga</td>
+            <td><span class="tag-orange">1.12 MPaA (162.4 PSIa)</span></td>
+          </tr>
+          <tr>
+            <td>Motor</td>
+            <td>783 kW · 13,800 V · 60 Hz</td>
+          </tr>
+          <tr>
+            <td>Velocidad</td>
+            <td>3,580 RPM</td>
+          </tr>
+          <tr>
+            <td>Aceite lubricante</td>
+            <td>TurboBlend (Ingersoll Rand)</td>
+          </tr>
+          <tr>
+            <td>Precalentamiento bomba aux.</td>
+            <td><span class="tag-orange">≥ 20 min</span> antes del arranque</td>
+          </tr>
+          <tr>
+            <td>Post-lubricación parada</td>
+            <td><span class="tag-orange">≥ 30 min</span> después de parar</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-title">ALARMAS Y TRIPS (P&ID AAFF900723919)</div>
+
+    <div class="alarm-panel">
+      <div class="alarm-panel-hdr">Vibración de eje (VXT 110/111/112)</div>
+      <div class="alarm-row">
+        <div class="alarm-dot alarm"></div>
+        <div class="alarm-name">Alarma vibración</div>
+        <div class="alarm-val alarm-color">38.1 μm (1.5 mils)</div>
+        <div class="alarm-type-tag alarm-tag">ALARM</div>
+      </div>
+      <div class="alarm-row">
+        <div class="alarm-dot trip"></div>
+        <div class="alarm-name">Trip vibración</div>
+        <div class="alarm-val trip-color">50.8 μm (2.0 mils)</div>
+        <div class="alarm-type-tag trip-tag">TRIP</div>
+      </div>
+    </div>
+
+    <div class="alarm-panel">
+      <div class="alarm-panel-hdr">Temperatura (inter-etapa / descarga)</div>
+      <div class="alarm-row">
+        <div class="alarm-dot alarm"></div>
+        <div class="alarm-name">Alarma temperatura salida</div>
+        <div class="alarm-val alarm-color">54 °C (130 °F)</div>
+        <div class="alarm-type-tag alarm-tag">ALARM</div>
+      </div>
+      <div class="alarm-row">
+        <div class="alarm-dot trip"></div>
+        <div class="alarm-name">Trip temperatura salida</div>
+        <div class="alarm-val trip-color">60 °C (140 °F)</div>
+        <div class="alarm-type-tag trip-tag">TRIP</div>
+      </div>
+    </div>
+
+    <div class="alarm-panel">
+      <div class="alarm-panel-hdr">Motor TECO (RTDs)</div>
+      <div class="alarm-row">
+        <div class="alarm-dot alarm"></div>
+        <div class="alarm-name">Alarma RTD estator</div>
+        <div class="alarm-val alarm-color">155 °C</div>
+        <div class="alarm-type-tag alarm-tag">ALARM</div>
+      </div>
+      <div class="alarm-row">
+        <div class="alarm-dot trip"></div>
+        <div class="alarm-name">Trip RTD estator</div>
+        <div class="alarm-val trip-color">165 °C</div>
+        <div class="alarm-type-tag trip-tag">TRIP</div>
+      </div>
+      <div class="alarm-row">
+        <div class="alarm-dot alarm"></div>
+        <div class="alarm-name">Alarma rodamientos motor</div>
+        <div class="alarm-val alarm-color">95 °C</div>
+        <div class="alarm-type-tag alarm-tag">ALARM</div>
+      </div>
+      <div class="alarm-row">
+        <div class="alarm-dot trip"></div>
+        <div class="alarm-name">Trip rodamientos motor</div>
+        <div class="alarm-val trip-color">100 °C</div>
+        <div class="alarm-type-tag trip-tag">TRIP</div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+    <button class="btn-primary" onclick="markDone('teoria');go('s-home')">✓ Sección completada</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 3: SIMULADOR ARRANQUE
+═══════════════════════════════════════════ -->
+<div id="s-arranque" class="screen">
+  <div class="hdr">
+    <div class="hdr-back" onclick="confirmBack()">‹</div>
+    <div class="hdr-info">
+      <div class="hdr-tag">Sec. 2.2</div>
+      <div class="hdr-title">Simulador de Arranque</div>
+    </div>
+    <div class="hdr-badge" id="sim-badge">0/20</div>
+  </div>
+
+  <div class="sim-progress-wrap">
+    <div class="sim-progress-nums">
+      <span id="sim-prog-done">Paso 0 de 20</span>
+      <span id="sim-prog-pct">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="sim-fill" style="width:0%"></div>
+    </div>
+    <div class="sim-phase-label">Fase: <span id="sim-phase-txt">Pre-arranque</span></div>
+  </div>
+
+  <div class="scroll-body" id="sim-scroll">
+    <!-- Steps injected by JS -->
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 4: PARADA
+═══════════════════════════════════════════ -->
+<div id="s-parada" class="screen">
+  <div class="hdr">
+    <div class="hdr-back" onclick="go('s-home')">‹</div>
+    <div class="hdr-info">
+      <div class="hdr-tag">Sec. 2.3</div>
+      <div class="hdr-title">SOP Parada Normal</div>
+    </div>
+  </div>
+  <div class="scroll-body">
+    <div class="section-title">PARADA NORMAL AC1001</div>
+
+    <div style="margin:0 16px 12px; padding:10px 14px; background:var(--orange-dim); border:1px solid var(--orange-mid); border-radius:10px; font-size:13px; color:var(--orange);">
+      ⚠️ La parada normal del compresor está mayormente automatizada por el sistema Maestro Universal. Sigue los pasos y verifica cada condición.
+    </div>
+
+    <div id="sop-steps-wrap">
+      <!-- Injected by JS -->
+    </div>
+
+    <div class="spacer"></div>
+    <button class="btn-primary" onclick="markDone('parada');go('s-home')">✓ SOP revisado</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 5: TROUBLESHOOTING
+═══════════════════════════════════════════ -->
+<div id="s-trouble" class="screen">
+  <div class="hdr">
+    <div class="hdr-back" onclick="go('s-home')">‹</div>
+    <div class="hdr-info">
+      <div class="hdr-tag">Sec. 2.4</div>
+      <div class="hdr-title">Diagnóstico de Anomalías</div>
+    </div>
+  </div>
+  <div class="scroll-body">
+    <div class="section-title">TABLA DE ANOMALÍAS — AC1001</div>
+    <div id="trouble-wrap">
+      <!-- Injected by JS -->
+    </div>
+    <div class="spacer"></div>
+    <button class="btn-primary" onclick="markDone('trouble');go('s-home')">✓ Sección completada</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 6: QUIZ
+═══════════════════════════════════════════ -->
+<div id="s-quiz" class="screen">
+  <div class="hdr">
+    <div class="hdr-back" onclick="go('s-home')">‹</div>
+    <div class="hdr-info">
+      <div class="hdr-tag">Evaluación</div>
+      <div class="hdr-title">Módulo 02 — AC1001</div>
+    </div>
+    <div class="hdr-badge" id="quiz-badge">1/10</div>
+  </div>
+  <div class="scroll-body">
+    <div class="progress-bar-bg" style="margin:8px 16px 0;">
+      <div class="progress-bar-fill" id="quiz-fill" style="width:10%"></div>
+    </div>
+    <div class="quiz-header">
+      <div class="quiz-q-count" id="quiz-q-count">Pregunta 1 de 10</div>
+      <div class="quiz-question" id="quiz-question">Cargando...</div>
+    </div>
+    <div class="quiz-opts" id="quiz-opts"></div>
+    <div class="quiz-feedback" id="quiz-feedback"></div>
+    <button class="quiz-next-btn" id="quiz-next" onclick="nextQuestion()">Siguiente →</button>
+    <div class="quiz-result" id="quiz-result">
+      <div class="quiz-score" id="quiz-score-num">0</div>
+      <div class="quiz-score-lbl">de 10 correctas</div>
+      <div id="quiz-verdict"></div>
+      <div style="height:12px;"></div>
+      <button class="btn-primary" onclick="markDone('quiz');go('s-home')" style="margin:0;">
+        Volver al Módulo
+      </button>
+      <button class="btn-secondary" onclick="startQuiz()" style="width:100%; margin:8px 0 0;">
+        Repetir evaluación
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════
+// DATA
+// ═══════════════════════════════════
+
+const STEPS = [
+  // PRE-ARRANQUE
+  { num:'2.2.1', phase:'Pre-arranque', title:'Inspeccionar filtro AF1001',
+    desc:'Verificar visualmente si el filtro de entrada tiene daños o tapones. Si hay daños, reemplazar el elemento filtrante ANTES de arrancar.',
+    attention:'Si el filtro está dañado o tapado, NO arrancar el compresor bajo ninguna circunstancia.',
+    control:null,
+    how:'Revisar visualmente el estado del filtro y la lectura del diferencial de presión PdIA-1001 en el DCS. Alarma a 650 Pa.',
+    why:'Un filtro dañado permite el ingreso de partículas sólidas al compresor centrífugo, causando erosión en impulsores y cojinetes — daño irreparable.',
+    tools:'Observación visual del filtro · Lectura DCS PdIA-1001 (rango normal: 150–650 Pa)',
+    input:null },
+
+  { num:'2.2.2', phase:'Pre-arranque', title:'Revisión eléctrica — personal calificado',
+    desc:'El ingeniero eléctrico debe confirmar que todos los equipos y componentes eléctricos estén correctamente instalados y aterrizados.',
+    attention:'Solo personal calificado puede operar el equipo. No reemplazar componentes eléctricos sin autorización de Ingersoll Rand.',
+    control:null,
+    how:'Verificar físicamente las conexiones del motor TECO (13,800 V · 783 kW), del panel de control Maestro Universal y de todos los actuadores. Comprobar continuidad de tierra.',
+    why:'El motor opera a 13,800 V. Un fallo de tierra o conexión puede causar disparo por sobretemperatura (RTD estator > 165°C) o riesgo eléctrico grave.',
+    tools:'Multímetro certificado para AT · Lista de verificación eléctrica del comisionamiento',
+    input:null },
+
+  { num:'2.2.3', phase:'Pre-arranque', title:'Verificar nivel de aceite en visor',
+    desc:'Comprobar que el nivel de aceite lubricante TurboBlend en el visor del tanque esté en el rango correcto.',
+    attention:null,
+    control:'Nivel: entre marcas mínima y máxima del visor (sight gauge)',
+    how:'Observar el visor de nivel (sight gauge) ubicado en el lateral del tanque de aceite. El nivel debe estar visible en la zona marcada — ni por debajo del mínimo ni por encima del máximo.',
+    why:'Nivel bajo → rodamientos y engranajes sin lubricación → gripado. Nivel alto → espumado del aceite, pérdida de propiedades lubricantes y posible contaminación del aire de proceso.',
+    tools:'Visor de nivel local (sight gauge) — no requiere instrumento adicional',
+    input:null },
+
+  { num:'2.2.4', phase:'Pre-arranque', title:'Verificar conexiones de tuberías externas',
+    desc:'Confirmar que todas las conexiones de tuberías externas del compresor estén correctamente montadas y sin tensiones excesivas sobre las bridas.',
+    attention:null,
+    control:null,
+    how:'Recorrer visualmente toda la tubería de entrada (12" diámetro) y descarga (6"). Verificar que las juntas de expansión no estén comprimidas anormalmente y que los soportes estén en posición correcta.',
+    why:'Las tensiones en tuberías se transmiten al cuerpo del compresor y deforman el alineamiento del eje. El P&ID AAFF900723919 requiere junta de expansión en la descarga por este motivo. Una desalineación de >0.007" a 3,580 RPM provoca vibración excesiva.',
+    tools:'Indicador de deflexión (dial gauge) para medir carga sobre brida si hay duda — tolerancia per IL0976: max 0.020" expansión total',
+    input:null },
+
+  { num:'2.2.5', phase:'Pre-arranque', title:'Energizar panel de control Maestro Universal',
+    desc:'Verificar la corriente del panel de control y confirmar que todos los instrumentos respondan correctamente.',
+    attention:null,
+    control:null,
+    how:'Encender el panel de control Maestro Universal. Verificar que la pantalla inicialice sin fallos y que las lecturas de presión, temperatura y vibración respondan (valores iniciales en frío son normales).',
+    why:'El Maestro Universal es el cerebro del compresor. Sin él activo, no es posible verificar los permisos de arranque ni el estado de los interbloqueos antes de pulsar START.',
+    tools:'Panel de control Maestro Universal (Ingersoll Rand) — acceso con clave de operador',
+    input:null },
+
+  { num:'2.2.6', phase:'Pre-arranque', title:'Verificar sistema de soporte de sellos',
+    desc:'Confirmar que el sistema de soporte de sellos funcione correctamente y que el suministro de gas buffer (aire instrumento) esté activo.',
+    attention:null,
+    control:'Presión gas buffer (instrument air): ≥ 0.64 MPa (93 PSI) — PIA-2001 en DCS',
+    how:'Verificar presión de suministro de aire de instrumentos en PIA-2001 (DCS). Asegurarse de que la válvula de filtro de aire instrumento AF2001 esté abierta.',
+    why:'Los sellos del compresor centrifugo son del tipo gas seal. Sin presión de buffer, el aceite lubricante puede contaminar el proceso de aire comprimido. Si los sellos fallan en operación → parada de emergencia automática.',
+    tools:'Lectura DCS PIA-2001 (alarma a 0.45 MPa / 65 PSI)',
+    input:null },
+
+  { num:'2.2.7', phase:'Pre-arranque', title:'Arrancar eliminador de niebla de aceite',
+    desc:'Encender el sistema de eliminación de niebla de aceite y verificar el nivel de vacío correcto.',
+    attention:'El eliminador de niebla debe estar activo SIEMPRE que el sistema de lubricación esté presurizado.',
+    control:'Vacío en eliminador: ~100 mm H₂O (~0.14 PSI) · Sistema activo antes de presurizar lubricación',
+    how:'Activar el eliminador de niebla de aceite desde el panel. Verificar que el indicador de vacío marque aproximadamente 100 mm columna de agua. Sin vacío, no presurizar el sistema de lubricación.',
+    why:'El sistema de lubricación trabaja a alta temperatura y velocidad. El aceite se vaporiza parcialmente. Sin el eliminador, vapores de aceite escapan al ambiente (riesgo ambiental/incendio) y se pierde aceite del sistema.',
+    tools:'Indicador de vacío local del eliminador de niebla · verificación visual del estado del motor del eliminador',
+    input:null },
+
+  { num:'2.2.8', phase:'Pre-arranque', title:'Arrancar bomba auxiliar — verificar presión aceite',
+    desc:'Encender la bomba auxiliar de aceite y verificar que la presión alcance el valor mínimo requerido. Valor de referencia del manual Ingersoll Rand (IL0976): presión verificada durante la limpieza de aceite inicial.',
+    attention:null,
+    control:'Presión mínima: ≥ 140 kPa (≥ 20 PSI) — referencia IL0976 commissioning check',
+    how:'Activar la bomba auxiliar desde el panel. Observar el manómetro local de presión de aceite en la descarga de la bomba. Esperar a que la presión estabilice (30–60 segundos). Si no alcanza 140 kPa, revisar nivel de aceite y filtros.',
+    why:'La bomba auxiliar pre-lubrifica todos los cojinetes y engranajes antes de que el eje comience a girar. Sin presión adecuada, el arranque del motor provoca contacto metal-metal en cojinetes → daño inmediato. El valor exacto de diseño en operación normal está en el manual físico del fabricante (Ingersoll Rand, entregado con el equipo).',
+    tools:'Manómetro local descarga bomba auxiliar · Lectura DCS si está instrumentado',
+    input:{ label:'Presión aceite medida (kPa)', unit:'kPa', min:140, max:300, hint:'Mínimo 140 kPa (20 PSI)' } },
+
+  { num:'2.2.9', phase:'Pre-arranque', title:'Bomba auxiliar: mínimo 20 minutos corriendo',
+    desc:'Dejar correr la bomba auxiliar de aceite durante al menos 20 minutos antes de arrancar el compresor. Esto asegura lubricación completa de todos los cojinetes y distribución uniforme del aceite por todo el circuito.',
+    attention:'CRÍTICO: El compresor no puede cargarse hasta que la bomba haya corrido el tiempo mínimo.',
+    control:'Tiempo mínimo bomba auxiliar: ≥ 20 min antes del START',
+    how:'Iniciar el timer. Durante este tiempo verificar periódicamente que la presión de aceite se mantenga estable (≥ 140 kPa / 20 PSI) y que no haya fugas en el circuito de lubricación.',
+    why:'El aceite frío es más viscoso y tarda en llegar a todas las partes del circuito. Los 20 minutos garantizan que incluso los cojinetes más alejados de la bomba tengan película de aceite completa antes del primer giro del eje a 3,580 RPM.',
+    tools:'Timer · Manómetro de aceite para monitoreo continuo durante el periodo',
+    input:null },
+
+  { num:'2.2.10', phase:'Pre-arranque', title:'Verificar IGV completamente cerrada (0%)',
+    desc:'Inspeccionar la válvula guía de entrada (Inlet Guide Vane). Confirmar que la indicación de apertura en el PLC sea consistente con la indicación física local y que esté COMPLETAMENTE CERRADA.',
+    attention:'La IGV debe mostrar 0% en AMBOS lugares: indicador local físico Y pantalla del Maestro Universal.',
+    control:'IGV: 0% (completamente cerrada) — verificar coherencia local vs PLC',
+    how:'1) Ir físicamente al compresor y leer el indicador de posición local de la IGV (debe marcar 0%). 2) Verificar en la pantalla del Maestro Universal que también indique 0%. Si hay discrepancia entre ambas lecturas, NO arrancar — posible fallo del actuador.',
+    why:'La IGV se abre progresivamente durante el arranque para cargar el compresor gradualmente. Si comienza abierta, el compresor toma carga inmediata al arrancar → sobrecorriente del motor → disparo del breaker o daño al motor TECO (783 kW · 13,800 V).',
+    tools:'Indicador de posición local IGV · Pantalla Maestro Universal (comparar ambos)',
+    input:null },
+
+  { num:'2.2.11', phase:'Pre-arranque', title:'Verificar válvula anti-surge — COMPLETAMENTE ABIERTA',
+    desc:'Confirmar que la válvula anti-surge (blowoff / modulating blow-off, 10" RF 150# según P&ID AAFF900723919) esté completamente abierta antes del arranque. Es un interlock de permiso.',
+    attention:'INTERLOCK: La válvula anti-surge DEBE estar abierta. Si está cerrada, el Maestro Universal bloqueará el arranque.',
+    control:'Anti-surge: 100% abierta — verificar en Maestro Universal y campo',
+    how:'Verificar estado en el Maestro Universal. Opcionalmente confirmar visualmente en campo el actuador de la válvula. Verificar también que la señal de posición llegue correctamente al panel.',
+    why:'Si el compresor arranca con la válvula anti-surge cerrada, el flujo de aire no tiene salida segura → el compresor entra inmediatamente en surge (bombeo) → daño severo a impulsores y cojinetes. La válvula se cierra gradualmente a medida que el proceso absorbe el caudal.',
+    tools:'Pantalla Maestro Universal · Observación visual del actuador en campo',
+    input:null },
+
+  { num:'2.2.12', phase:'Pre-arranque', title:'Verificar T° y P° aceite lubricante — valores de operación',
+    desc:'Comprobar que la temperatura y presión del aceite lubricante estén en rangos normales de operación. Los valores exactos de diseño en régimen están especificados en el manual físico del fabricante (Manual de Operación y Mantenimiento de Ingersoll Rand, entregado con el equipo). Referencia disponible: IL0976 indica presión de arranque ≥ 140 kPa (20 PSI).',
+    attention:null,
+    control:'Presión aceite operación: ver manual físico IR · Referencia arranque: ≥ 140 kPa (20 PSI) · T° aceite: rango normal 30–60°C (86–140°F)',
+    how:'Leer el manómetro local de presión de aceite (PG, ubicado en el sistema de lubricación del compresor). Leer el termómetro local del tanque de aceite (TG). Comparar con los valores de diseño en el manual del fabricante.',
+    why:'Presión de aceite baja → cojinetes sin lubricación → fallo catastrófico. Temperatura de aceite alta → degradación del lubricante TurboBlend → pérdida de viscosidad → daño en cojinetes de alta velocidad (3,580 RPM). Temperatura baja → aceite muy viscoso → presión excesiva en filtros.',
+    tools:'📘 Manual físico Ingersoll Rand (suministrado con el equipo) para valores de diseño específicos · Manómetro local PG-aceite · Termómetro local TG-aceite',
+    vendor:'Los valores exactos de presión y temperatura de diseño en régimen permanente están en el manual de operación y mantenimiento Ingersoll Rand suministrado físicamente con el equipo. Consultar la sección de parámetros de lubricación.',
+    input:null },
+
+  // ARRANQUE
+  { num:'2.2.13', phase:'Arranque', title:'Verificar TODOS los permisos en verde → PULSAR START',
+    desc:'Verificar en la pantalla del Maestro Universal que TODOS los permisos de arranque (start permissives) estén en VERDE. Sin excepción. Luego pulsar START del motor principal.',
+    attention:'Si cualquier permiso aparece en ROJO o AMARILLO, investigar la causa antes de intentar el arranque. NUNCA forzar el arranque.',
+    control:'Todos los permisos: VERDE ✓ · Botones de paro emergencia: RESETEADOS · Sin alarmas activas',
+    how:'En la pantalla del Maestro Universal, navegar a la pantalla de estado de permisos (Start Permissives). Confirmar cada ítem de la lista en verde: nivel aceite, presión aceite, IGV cerrada, anti-surge abierta, temperatura aceite, estado sellos. Cuando todos están en verde: pulsar START en el panel local.',
+    why:'El sistema de interbloqueos protege al compresor y al motor TECO (783 kW · 13,800 V) contra arranques bajo condiciones que causarían daño. Un arranque forzado con un permiso en rojo puede resultar en daño de equipos valorados en cientos de miles de dólares.',
+    tools:'Pantalla Maestro Universal — pantalla de Start Permissives',
+    input:null },
+
+  { num:'2.2.14', phase:'Arranque', title:'Inspeccionar fugas de aire y aceite',
+    desc:'Tras el arranque, recorrer el compresor inspeccionando todas las conexiones buscando fugas de aire a presión y fugas de aceite lubricante.',
+    attention:'Si hay fuga de aire o aceite significativa, detener el compresor inmediatamente.',
+    control:'Cero fugas visibles en sellos, bridas y conexiones de tuberías',
+    how:'Recorrer el perímetro del compresor. Para fugas de aire: escuchar siseos, usar la mano cerca (nunca directamente sobre una posible fuga a presión). Para fugas de aceite: inspeccionar visualmente sellos del eje, carcasa del compresor, conexiones de tuberías de lubricación.',
+    why:'Una fuga de aire en la descarga (1.12 MPaA (162.4 PSIa) / 162.4 PSIa) es un riesgo de seguridad importante. Una fuga de aceite puede causar incendio al contactar superficies calientes, y priva de lubricación a cojinetes críticos.',
+    tools:'Inspección visual y auditiva · EPP: protección auditiva recomendada en área de compresor en operación',
+    input:null },
+
+  { num:'2.2.15', phase:'Arranque', title:'Verificar ruidos y vibración del eje',
+    desc:'Confirmar que no hay ruidos anormales. Verificar que los valores de vibración del eje estén dentro del rango normal (por debajo de alarma).',
+    attention:'Si hay ruidos anormales o vibración excesiva, parar el compresor y analizar la causa.',
+    control:'Vibración normal: < 38.1 μm (1.5 mils) (< 1.5 mils) · Alarma: 38.1 μm (1.5 mils) (1.5 mils) · TRIP: 50.8 μm (2.0 mils) (2.0 mils) — P&ID AAFF900723919 VXT110/111/112',
+    how:'Leer los valores de vibración en la pantalla del Maestro Universal (transmisores VXT110, VXT111, VXT112, uno por etapa). Escuchar activamente ruidos: golpeteo, chirrido o cambios de tono anormales. Un compresor sano opera con un tono continuo y uniforme.',
+    why:'La vibración es el síntoma más temprano de problemas mecánicos (desbalanceo, daño en cojinetes, surge). La escala mils es la estándar americana del fabricante: 1 mil = 0.0254 mm = 25.4 μm. A 3,580 RPM, incluso pequeñas desviaciones generan fuerzas destructivas.',
+    tools:'Lecturas DCS/Maestro Universal: VXT-110, VXT-111, VXT-112 · Protección auditiva en campo',
+    input:{ label:'Vibración máxima registrada (μm)', unit:'μm', min:0, max:38, hint:'< 38.1 μm (1.5 mils) normal · = 38.1 μm (1.5 mils) ALARMA · > 50.8 μm (2.0 mils) TRIP' } },
+
+  { num:'2.2.16', phase:'Arranque', title:'Transferir a control automático',
+    desc:'Transferir el compresor al modo de control automático del sistema Maestro Universal, siguiendo el procedimiento indicado en el manual del fabricante.',
+    attention:null,
+    control:'Modo: AUTO en Maestro Universal · Compresor integrado al DCS vía MODBUS',
+    how:'Desde el Maestro Universal, seleccionar modo AUTO. Verificar en el DCS que las lecturas de presión, temperatura, vibración y apertura IGV aparezcan correctamente vía MODBUS. Confirmar que el sistema de anti-surge también esté en modo automático.',
+    why:'El control automático ajusta continuamente la IGV y la válvula anti-surge para mantener el punto de operación óptimo y prevenir el surge ante variaciones de demanda del proceso.',
+    tools:'Pantalla Maestro Universal · Pantalla DCS (verificar señales MODBUS activas)',
+    input:null },
+
+  { num:'2.2.17', phase:'Operación', title:'Monitoreo periódico: T° y P° aceite',
+    desc:'Verificar periódicamente temperatura y presión del aceite lubricante durante operación. Confirmar que la bomba auxiliar de aceite esté en modo automático.',
+    attention:null,
+    control:'Bomba auxiliar: modo AUTO · P° y T° aceite: dentro de rangos normales (ver manual físico IR)',
+    how:'Revisar los indicadores locales o lecturas DCS de presión y temperatura de aceite. En operación normal la bomba principal (acoplada al eje) provee la lubricación; la bomba auxiliar queda en modo automático como respaldo (arranca automáticamente si la presión baja de un setpoint).',
+    why:'Si la bomba principal falla durante operación, la bomba auxiliar debe arrancar automáticamente para mantener lubricación durante la parada. Si no está en AUTO, una falla de la bomba principal → pérdida de presión → daño en cojinetes en rotación.',
+    tools:'Manómetro local aceite · Termómetro local aceite · Estado bomba auxiliar en Maestro Universal',
+    input:null },
+
+  { num:'2.2.18', phase:'Operación', title:'Ajustar parámetros operativos — verificar presión descarga',
+    desc:'Ajustar los parámetros de funcionamiento del compresor según las condiciones del proceso. Verificar que la presión de descarga no supere el valor nominal de diseño.',
+    attention:'La presión de salida NO debe superar la presión nominal de diseño indicada en la placa del equipo.',
+    control:'P° descarga diseño: 1.12 MPaA (162.4 PSIa) = 162.4 PSIa (11.2 barg = 162.4 PSIg)',
+    how:'Leer la presión de descarga en el indicador local o en el DCS. Si se necesita ajustar la capacidad, modificar la apertura de la IGV desde el Maestro Universal. La relación es: mayor apertura IGV → mayor caudal y presión. Verificar que no se supere 1.12 MPaA (162.4 PSIa) (162.4 PSIa).',
+    why:'Superar la presión nominal puede dañar las etapas de compresión, las válvulas de retención y la tubería de descarga. El sistema de alta presión opera a 162 PSI — una falla puede resultar en proyección de fluidos.',
+    tools:'Manómetro local descarga · Lectura DCS presión descarga · Pantalla Maestro Universal para ajuste IGV',
+    input:{ label:'Presión descarga actual (MPaA)', unit:'MPaA', min:0, max:1.12, hint:'Máx: 1.12 MPaA (162.4 PSIa) = 162.4 PSIa = 11.2 barg' } },
+
+  { num:'2.2.19', phase:'Operación', title:'Verificar drenaje de separadores inter-etapa',
+    desc:'Comprobar que los separadores de agua entre etapas (intercoolers entre etapas 1→2 y 2→3) estén drenando el condensado correctamente.',
+    attention:null,
+    control:'Drenaje activo en todos los separadores inter-etapa · Válvulas solenoides de condensado operativas',
+    how:'Verificar en el panel o DCS que las válvulas solenoides de condensado de los intercoolers estén operativas (abren y cierran cíclicamente). En campo: verificar que no haya acumulación de agua visible en los puntos bajos.',
+    why:'El aire comprimido caliente al enfriarse en cada intercooler condensa el vapor de agua. Si el condensado no se drena, puede ingresar al siguiente impulsor en forma de líquido → daño severo por golpe de líquido (liquid slug) a alta velocidad. Es también una fuente de corrosión.',
+    tools:'Estado de válvulas solenoides de condensado en DCS/Maestro Universal · Inspección visual de puntos de drenaje',
+    input:null },
+
+  { num:'2.2.20', phase:'Operación', title:'⚠️ NUNCA superar presión de diseño de la placa',
+    desc:'Verificar continuamente que la presión de operación NO supere en ningún momento el valor nominal indicado en la placa del equipo (nameplate). Esta es una regla de seguridad absoluta.',
+    attention:'SEGURIDAD: Superar la presión nominal puede causar daño catastrófico al equipo y lesiones al personal. Verificar el valor exacto en la placa del equipo instalado.',
+    control:'P° máxima absoluta: según placa del equipo (nameplate) · Referencia diseño proceso: 1.12 MPaA (162.4 PSIa) (162.4 PSIa)',
+    how:'La presión de descarga está monitorizada continuamente por el Maestro Universal. Si supera los límites configurados, el sistema dispara automáticamente. El operador debe monitorear en DCS y actuar preventivamente si la tendencia sube hacia el límite.',
+    why:'Los componentes internos del compresor (impulsores, carcasas, bridas) están calculados para la presión de diseño con margen de seguridad. Exceder este valor en operación dinámica puede causar fractura de componentes a alta velocidad.',
+    tools:'Lectura DCS presión descarga · Alarmas configuradas en Maestro Universal',
+    input:null },
+];
+
+const SOP_STEPS = [
+  { num:'2.3.1', title:'Descarga automática del compresor', desc:'Abrir progresivamente la válvula anti-surge (blowoff) y cerrar progresivamente la válvula guía de entrada (IGV). Este paso lo ejecuta automáticamente el sistema Maestro Universal.', alert:'Este paso es automático. El operador solo confirma que se está ejecutando correctamente.' },
+  { num:'2.3.2', title:'Pulsar STOP en el panel local', desc:'Presionar el botón de parada (STOP) en el panel de control local de AC1001.', alert:null },
+  { num:'2.3.3', title:'Bomba auxiliar aceite: ≥ 30 min post-parada', desc:'Mantener la bomba auxiliar de aceite en funcionamiento durante al menos 30 minutos después de la parada del motor principal, para enfriar los cojinetes y el reductor.', alert:'CRÍTICO: Mantener bomba auxiliar ≥ 30 minutos. No detenerla antes.' },
+  { num:'2.3.4', title:'Mantener agua en enfriador de aceite', desc:'Continuar suministrando agua de enfriamiento al enfriador de aceite durante el período post-parada, junto con la bomba auxiliar, para extraer el calor del reductor.', alert:'Continuar agua al enfriador de aceite durante los ~30 min post-parada.' },
+  { num:'2.3.5', title:'Cerrar agua al enfriador (bomba parada)', desc:'Una vez que la bomba auxiliar de aceite se detenga, cerrar las válvulas de agua hacia el enfriador de aceite del compresor.', alert:null },
+  { num:'2.3.6', title:'Parada larga: mantener sistema de lubricación', desc:'Para paradas de larga duración (mayor a varios días), mantener el sistema de lubricación activo según las instrucciones del manual del fabricante para proteger los cojinetes.', alert:'Solo aplica para paradas de larga duración. Consultar manual Ingersoll Rand.' },
+  { num:'2.3.7', title:'Abrir drenaje del intercooler', desc:'Abrir la válvula de drenaje del lado carcasa (shell side) de los intercoolers entre etapas para eliminar el condensado de agua acumulado.', alert:null },
+];
+
+const TROUBLES = [
+  { idx:'01', title:'Nivel de aceite lubricante bajo', causes:['Consumo normal o fuga en el sistema de lubricación'], actions:['Verificar y localizar posibles fugas', 'Añadir aceite lubricante TurboBlend al nivel correcto'] },
+  { idx:'02', title:'Presión de aceite baja', causes:['Problema en la bomba de aceite', 'Filtro de aceite obstruido'], actions:['Verificar el funcionamiento de la bomba de aceite', 'Revisar y limpiar o reemplazar el filtro de aceite'] },
+  { idx:'03', title:'Temperatura de aceite alta o baja', causes:['Suministro insuficiente de agua al enfriador de aceite', 'Eficiencia baja del enfriador de aceite', 'Calentador eléctrico arranque anormal automático'], actions:['Ajustar la apertura de la válvula de entrada de agua al enfriador', 'Si es problema de eficiencia, contactar al fabricante y reemplazar el enfriador', 'Verificar el cableado del calentador eléctrico del tanque de aceite'] },
+  { idx:'04', title:'Vibración de eje alta (> 38.1 μm (1.5 mils))', causes:['Desbalanceo del impulsor', 'Problema en cojinetes', 'Alineación incorrecta de tuberías', 'Condiciones operativas anormales'], actions:['Parar el compresor si supera el límite de trip (50.8 μm (2.0 mils))', 'Verificar estado de los cojinetes', 'Revisar alienación y tensiones de tuberías', 'Contactar a Ingersoll Rand'] },
+  { idx:'05', title:'Temperatura de descarga alta (> 54 °C)', causes:['Temperatura ambiente muy alta', 'Problemas en los intercoolers inter-etapa', 'Relación de compresión fuera de rango'], actions:['Verificar y mejorar la ventilación del área', 'Inspeccionar y limpiar los intercoolers', 'Verificar presiones de operación en cada etapa'] },
+  { idx:'06', title:'Compresor no arranca (permiso DCS rechazado)', causes:['Algún interbloqueo no está satisfecho', 'Bomba auxiliar no ha corrido el tiempo mínimo (20 min)', 'IGV no está completamente cerrada', 'Válvula anti-surge no está abierta', 'Botón de paro de emergencia no reseteado'], actions:['Revisar pantalla del DCS: identificar qué permiso está en ROJO', 'Verificar bomba auxiliar: mínimo 20 min de precalentamiento', 'Confirmar IGV al 0% (cerrada)', 'Confirmar válvula anti-surge al 100% (abierta)', 'Resetear botones de paro de emergencia'] },
+  { idx:'07', title:'Ruido o golpeteo inusual', causes:['Ingreso de líquido al compresor (condensado)', 'Objeto extraño en el pasaje de aire', 'Rodamiento dañado', 'Surge (bombeo del compresor)'], actions:['Parar el compresor inmediatamente', 'Verificar drenaje de separadores inter-etapa', 'Inspeccionar filtro AF1001', 'Revisar curva operativa vs. línea de surge', 'Contactar a Ingersoll Rand para inspección de rodamientos'] },
+  { idx:'08', title:'Surge del compresor (bombeo)', causes:['Flujo de aire insuficiente al compresor', 'Anti-surge valve no responde', 'Operación cerca del límite de la curva de surge'], actions:['Abrir completamente la válvula anti-surge manualmente', 'Verificar el funcionamiento del sistema de control de surge', 'Reducir la carga del compresor (cerrar IGV)', 'No operar en la zona de surge: riesgo de daño severo al equipo'] },
+];
+
+const QUIZ_Q = [
+  { q:'¿Cuál es la presión de descarga de diseño del compresor AC1001?', opts:['0.85 MPaA','1.12 MPaA (162.4 PSIa)','1.50 MPaA','0.98 MPaA'], ans:1, exp:'Según la Sección 1.3 del Manual Operativo, el AC1001 comprime el aire hasta 1.12 MPaA (162.4 PSIa).' },
+  { q:'¿Cuánto tiempo mínimo debe correr la bomba auxiliar de aceite ANTES del arranque?', opts:['5 minutos','10 minutos','20 minutos','30 minutos'], ans:2, exp:'Sección 2.2.9: La bomba auxiliar debe correr al menos 20 minutos antes de cargar el compresor.' },
+  { q:'¿En qué posición debe estar la IGV al momento de pulsar START?', opts:['Completamente abierta (100%)','Al 50% de apertura','Completamente cerrada (0%)','Posición libre'], ans:2, exp:'Sección 2.2.10: La IGV debe estar completamente cerrada (0%) como condición de arranque.' },
+  { q:'¿Qué valor de vibración de eje activa el TRIP (parada automática) del compresor?', opts:['25.4 μm','38.1 μm (1.5 mils)','50.8 μm (2.0 mils)','63.5 μm'], ans:2, exp:'Según el P&ID AAFF900723919: Alarma = 38.1 μm (1.5 mils), Trip = 50.8 μm (2.0 mils).' },
+  { q:'¿Cuánto tiempo mínimo debe correr la bomba auxiliar DESPUÉS de la parada?', opts:['10 minutos','20 minutos','30 minutos','60 minutos'], ans:2, exp:'Sección 2.3.3: La bomba auxiliar debe correr al menos 30 minutos post-parada para enfriar cojinetes y reductor.' },
+  { q:'¿Cuál es la potencia del motor eléctrico del compresor AC1001?', opts:['450 kW','625 kW','783 kW','1050 kW'], ans:2, exp:'Motor TECO AD244316B1: 783 kW / 1050 HP, 13,800 V, 60 Hz.' },
+  { q:'Si el DCS muestra un permiso en ROJO al intentar arrancar, ¿qué se debe hacer?', opts:['Ignorarlo y pulsar START de todas formas','Investigar qué interbloqueo no está satisfecho antes de continuar','Apagar y encender el panel de control','Llamar directamente al fabricante'], ans:1, exp:'Sección 2.2.13: Si cualquier permiso está en ROJO (no permitido), se debe investigar la causa antes de intentar el arranque.' },
+  { q:'¿A qué temperatura se activa la alarma del RTD de estator del motor TECO?', opts:['120 °C','140 °C','155 °C','175 °C'], ans:2, exp:'Ficha técnica TECO AD244316B1: Alarma RTD estator = 155 °C, Trip = 165 °C.' },
+  { q:'¿Cuál es la posición correcta de la válvula anti-surge ANTES del arranque?', opts:['Completamente cerrada','Al 50%','Completamente abierta','Posición manual del operador'], ans:2, exp:'Sección 2.2.11: La válvula anti-surge debe estar completamente abierta. Es una condición de permiso (interlock) para el arranque.' },
+  { q:'Después de arrancar el compresor, ¿qué se debe inspeccionar inmediatamente?', opts:['Solo la presión de descarga','Fugas de aire y aceite, ruidos y vibración','La temperatura del motor únicamente','El nivel del tanque de aceite solamente'], ans:1, exp:'Secciones 2.2.14 y 2.2.15: Inspeccionar fugas de aire/aceite, escuchar ruidos anormales y verificar vibración del eje.' },
+];
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+const KEY = 'asu_m02';
+let state = JSON.parse(localStorage.getItem(KEY) || '{}');
+let simStep = state.simStep || 0;
+let sopChecks = state.sopChecks || {};
+let quizIdx = 0, quizScore = 0, quizAnswered = false;
+
+function saveState(){
+  state.simStep = simStep;
+  state.sopChecks = sopChecks;
+  state.timerDone = timerDone;
+  localStorage.setItem(KEY, JSON.stringify(state));
+}
+
+// ═══════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='s-arranque') renderSim();
+  if(id==='s-parada') renderSop();
+  if(id==='s-trouble') renderTrouble();
+  if(id==='s-home') renderHome();
+}
+
+function confirmBack(){
+  if(simStep>0 && simStep<STEPS.length){
+    if(confirm('¿Salir del simulador? Tu progreso actual se guardará.')) go('s-home');
+  } else { go('s-home'); }
+}
+
+// ═══════════════════════════════════
+// HOME PROGRESS
+// ═══════════════════════════════════
+function renderHome(){
+  const sections = ['teoria','arranque','parada','trouble','quiz'];
+  const done = sections.filter(s=>state['done_'+s]).length;
+  document.getElementById('home-progress-fill').style.width = (done/5*100)+'%';
+  document.getElementById('home-progress-txt').textContent = `${done} de 5 secciones completadas`;
+  sections.forEach(s=>{
+    const card = document.getElementById('nav-'+s);
+    if(!card) return;
+    const chk = card.querySelector('.nav-card-check');
+    if(state['done_'+s]){
+      card.classList.add('done');
+      if(!chk){ const el=document.createElement('div'); el.className='nav-card-check'; el.textContent='LISTO'; card.appendChild(el); }
+    }
+  });
+}
+
+function markDone(key){
+  state['done_'+key] = true;
+  saveState();
+}
+
+// ═══════════════════════════════════
+// THEORY BLOCKS
+// ═══════════════════════════════════
+function toggleBlock(hdr){
+  const block = hdr.closest('.theory-block');
+  block.classList.toggle('open');
+}
+
+// ═══════════════════════════════════
+// SIMULATOR
+// ═══════════════════════════════════
+function renderSim(){
+  const wrap = document.getElementById('sim-scroll');
+  if(simStep >= STEPS.length){ renderSimComplete(wrap); return; }
+
+  wrap.innerHTML = '';
+  STEPS.forEach((step, i)=>{
+    const card = document.createElement('div');
+    let cls = 'step-card';
+    if(i < simStep) cls += ' done-step';
+    else if(i === simStep) cls += ' active-step';
+    else cls += ' locked-step';
+    card.className = cls;
+    card.id = 'step-'+i;
+
+    let phaseColor = step.phase==='Pre-arranque'?'var(--blue)':step.phase==='Arranque'?'var(--orange)':'var(--green)';
+
+    let inputHtml = '';
+    if(step.input && i===simStep){
+      inputHtml = `
+        <div class="step-input-wrap">
+          <label class="step-input-lbl">${step.input.label}</label>
+          <input type="number" class="step-input" id="inp-${i}" placeholder="${step.input.hint}"
+            inputmode="decimal" step="any">
+          <div class="input-feedback" id="fb-${i}"></div>
+        </div>`;
+    }
+
+    let attHtml = step.attention && i===simStep ? `
+      <div class="step-attention">
+        <span class="step-attention-icon">⚠️</span>
+        <span>${step.attention}</span>
+      </div>` : '';
+
+    let ctrlHtml = step.control && i===simStep ? `
+      <div class="step-control-range">
+        <div class="step-control-range-lbl">Rango de Control</div>
+        <div class="step-control-range-val">${step.control}</div>
+      </div>` : '';
+
+    let vendorHtml = step.vendor && i===simStep ? `
+      <div class="vendor-note">
+        <span style="font-size:16px;flex-shrink:0">📘</span>
+        <span><strong>Manual físico del fabricante:</strong> ${step.vendor}</span>
+      </div>` : '';
+
+    let detailHtml = '';
+    if(i===simStep && (step.how || step.why || step.tools)){
+      detailHtml = `<div class="step-detail-grid">`;
+      if(step.how) detailHtml += `<div class="step-detail-card how"><span class="step-detail-icon">🔧</span><div><div class="step-detail-label">Cómo se hace</div><div class="step-detail-text">${step.how}</div></div></div>`;
+      if(step.why) detailHtml += `<div class="step-detail-card why"><span class="step-detail-icon">💡</span><div><div class="step-detail-label">Por qué importa</div><div class="step-detail-text">${step.why}</div></div></div>`;
+      if(step.tools) detailHtml += `<div class="step-detail-card tools"><span class="step-detail-icon">📐</span><div><div class="step-detail-label">Herramienta / Instrumento</div><div class="step-detail-text">${step.tools}</div></div></div>`;
+      detailHtml += `</div>`;
+    }
+
+    let btnHtml = i===simStep ? `
+      <button class="step-btn confirm-btn" onclick="confirmStep(${i})">
+        ${step.input ? '✓ Registrar y Confirmar' : '✓ Paso Completado'}
+      </button>` : '';
+
+    card.innerHTML = `
+      <div class="step-card-hdr">
+        <div class="step-num">${i<simStep?'✓':i+1}</div>
+        <div class="step-card-info">
+          <div class="step-phase-tag" style="color:${phaseColor}">${step.phase} · ${step.num}</div>
+          <div class="step-title">${step.title}</div>
+          <div class="step-desc">${i<=simStep?step.desc:''}</div>
+        </div>
+      </div>
+      <div class="step-body">
+        ${attHtml}${ctrlHtml}${vendorHtml}${detailHtml}${inputHtml}${btnHtml}
+      </div>`;
+    wrap.appendChild(card);
+  });
+
+  updateSimProgress();
+  setTimeout(()=>{
+    const el = document.getElementById('step-'+simStep);
+    if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 100);
+}
+
+function confirmStep(i){
+  const step = STEPS[i];
+  if(step.input){
+    const inp = document.getElementById('inp-'+i);
+    const fb = document.getElementById('fb-'+i);
+    const val = parseFloat(inp.value);
+    if(isNaN(val) || inp.value===''){
+      fb.className='input-feedback err'; fb.textContent='⚠ Ingresa un valor antes de continuar.'; return;
+    }
+    if(val > step.input.max){
+      inp.className='step-input invalid';
+      fb.className='input-feedback err';
+      fb.textContent = `⚠ Valor fuera de rango. Máximo: ${step.input.max} ${step.input.unit}`;
+      return;
+    }
+    if(val < step.input.min){
+      inp.className='step-input invalid';
+      fb.className='input-feedback err';
+      fb.textContent = `⚠ Valor por debajo del mínimo: ${step.input.min} ${step.input.unit}`;
+      return;
+    }
+    inp.className='step-input valid';
+    fb.className='input-feedback ok';
+    fb.textContent = `✓ Valor registrado: ${val} ${step.input.unit}`;
+    setTimeout(()=>advanceStep(), 800);
+  } else {
+    advanceStep();
+  }
+}
+
+function advanceStep(){
+  simStep++;
+  saveState();
+  if(simStep >= STEPS.length){
+    markDone('arranque');
+    renderSimComplete(document.getElementById('sim-scroll'));
+    updateSimProgress();
+  } else {
+    renderSim();
+  }
+}
+
+function updateSimProgress(){
+  const done = Math.min(simStep, STEPS.length);
+  const pct = Math.round(done/STEPS.length*100);
+  document.getElementById('sim-badge').textContent = `${done}/${STEPS.length}`;
+  document.getElementById('sim-prog-done').textContent = `Paso ${done} de ${STEPS.length}`;
+  document.getElementById('sim-prog-pct').textContent = pct+'%';
+  document.getElementById('sim-fill').style.width = pct+'%';
+  const phase = simStep < STEPS.length ? STEPS[simStep].phase : 'Completado';
+  document.getElementById('sim-phase-txt').textContent = phase;
+}
+
+function renderSimComplete(wrap){
+  updateSimProgress();
+  document.getElementById('sim-phase-txt').textContent = 'Completado ✓';
+  wrap.innerHTML = `
+    <div class="sim-complete">
+      <div class="sim-complete-icon">🎉</div>
+      <div class="sim-complete-title">ARRANQUE COMPLETADO</div>
+      <div class="sim-complete-sub">Has completado los 20 pasos del procedimiento de arranque del AC1001</div>
+      <div class="sim-stat-row">
+        <div class="sim-stat">
+          <div class="sim-stat-val">20</div>
+          <div class="sim-stat-lbl">Pasos confirmados</div>
+        </div>
+        <div class="sim-stat">
+          <div class="sim-stat-val">100%</div>
+          <div class="sim-stat-lbl">Completado</div>
+        </div>
+      </div>
+      <button class="step-btn" onclick="resetSim()">↺ Reiniciar Simulador</button>
+      <button class="step-btn skip-btn" style="margin-top:8px" onclick="go('s-home')">Volver al Módulo</button>
+    </div>`;
+}
+
+function resetSim(){
+  simStep = 0;
+  state.simStep = 0;
+  state.done_arranque = false;
+  saveState();
+  renderSim();
+}
+
+// ═══════════════════════════════════
+// SOP PARADA
+// ═══════════════════════════════════
+
+// Timer state
+const TIMER_STEP_IDX = 2;           // step 2.3.3 = index 2
+let timerMode = 'sim';              // 'real'=1800s | 'sim'=30s
+let timerTotal = 30;                // seconds (default sim)
+let timerRemaining = 30;
+let timerInterval = null;
+let timerRunning = false;
+let timerDone = state.timerDone || false;
+
+const CIRCUMFERENCE = 2 * Math.PI * 48; // r=48
+
+function renderSop(){
+  const wrap = document.getElementById('sop-steps-wrap');
+  wrap.innerHTML = '';
+  SOP_STEPS.forEach((s,i)=>{
+    const div = document.createElement('div');
+    div.className = 'sop-step';
+
+    // Step 2 (2.3.3) needs the timer — locked until timer done
+    const isTimerStep = (i === TIMER_STEP_IDX);
+    const locked = isTimerStep && !timerDone;
+    const checked = sopChecks[i] && (!isTimerStep || timerDone);
+
+    let extraHtml = '';
+    if(isTimerStep){
+      extraHtml = buildTimerHtml();
+    }
+
+    div.innerHTML = `
+      <div class="sop-num" style="background:${checked?'var(--green)':'var(--bg3)'};color:${checked?'#000':'var(--text-dim)'}">${checked?'✓':s.num}</div>
+      <div class="sop-body" style="flex:1;">
+        <div class="sop-title">${s.title}</div>
+        <div class="sop-desc">${s.desc}</div>
+        ${s.alert?`<div class="sop-alert">⚠️ ${s.alert}</div>`:''}
+        ${extraHtml}
+        ${isTimerStep && !timerDone ? `<div class="timer-warning" id="timer-warn" style="display:none;">El timer debe completarse antes de marcar este paso.</div>` : ''}
+      </div>
+      <div class="sop-check ${checked?'checked':''} ${locked?'locked':''}"
+        onclick="${locked?'showTimerWarn()':'toggleSop('+i+')'}">
+        ${checked?'✓':''}
+      </div>`;
+    wrap.appendChild(div);
+  });
+
+  // Restore timer visual if was running
+  if(timerRunning || timerDone){
+    restoreTimerState();
+  }
+}
+
+function buildTimerHtml(){
+  const displayMins = timerDone ? '00:00' : formatTime(timerTotal);
+  return `
+  <div class="timer-wrap" id="timer-block">
+    <div class="timer-mode-row">
+      <div class="timer-mode-btn ${timerMode==='sim'?'active':''} ${timerRunning||timerDone?'disabled':''}"
+        id="btn-sim" onclick="setTimerMode('sim')">
+        ⚡ SIMULACIÓN<br><span style="font-size:10px;font-weight:400;">30 seg</span>
+      </div>
+      <div class="timer-mode-btn ${timerMode==='real'?'active':''} ${timerRunning||timerDone?'disabled':''}"
+        id="btn-real" onclick="setTimerMode('real')">
+        🏭 OPERACIÓN REAL<br><span style="font-size:10px;font-weight:400;">30 min</span>
+      </div>
+    </div>
+
+    <div class="timer-ring-wrap">
+      <div class="timer-ring-container">
+        <svg class="timer-ring-svg" width="110" height="110" viewBox="0 0 110 110">
+          <circle class="timer-ring-bg" cx="55" cy="55" r="48"/>
+          <circle class="timer-ring-fill ${timerDone?'done-ring':''}" id="timer-ring" cx="55" cy="55" r="48"
+            stroke-dasharray="${CIRCUMFERENCE}"
+            stroke-dashoffset="${timerDone?CIRCUMFERENCE:0}"/>
+        </svg>
+        <div class="timer-digits" id="timer-digits">
+          ${timerDone?'✓':formatTime(timerTotal)}
+        </div>
+      </div>
+      <div class="timer-label ${timerRunning?'running-label':timerDone?'done-label':''}" id="timer-label">
+        ${timerDone?'BOMBA DETENIDA — OK':'Bomba auxiliar de aceite'}
+      </div>
+    </div>
+
+    <div class="timer-done-banner" id="timer-done-banner"
+      style="display:${timerDone?'block':'none'}">
+      ✓ 30 minutos completados — Bomba auxiliar puede detenerse
+    </div>
+
+    <button class="timer-start-btn" id="timer-start-btn"
+      onclick="startTimer()"
+      ${timerRunning||timerDone?'disabled':''}>
+      ${timerDone?'✓ Completado':timerRunning?'⏳ Corriendo...':'▶ Iniciar Timer'}
+    </button>
+  </div>`;
+}
+
+function setTimerMode(mode){
+  if(timerRunning || timerDone) return;
+  timerMode = mode;
+  timerTotal = mode==='real' ? 1800 : 30;
+  timerRemaining = timerTotal;
+  // re-render to refresh UI
+  renderSop();
+}
+
+function startTimer(){
+  if(timerRunning || timerDone) return;
+  timerRunning = true;
+  timerRemaining = timerTotal;
+
+  // disable mode buttons
+  ['btn-sim','btn-real'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.add('disabled'); });
+  const startBtn = document.getElementById('timer-start-btn');
+  if(startBtn){ startBtn.disabled=true; startBtn.textContent='⏳ Corriendo...'; }
+  const lbl = document.getElementById('timer-label');
+  if(lbl){ lbl.className='timer-label running-label'; lbl.textContent='Corriendo — No detener la bomba'; }
+
+  timerInterval = setInterval(tickTimer, 1000);
+}
+
+function tickTimer(){
+  timerRemaining--;
+  updateRingDisplay();
+
+  if(timerRemaining <= 0){
+    clearInterval(timerInterval);
+    timerInterval = null;
+    timerRunning = false;
+    timerDone = true;
+    state.timerDone = true;
+    saveState();
+    finishTimer();
+  }
+}
+
+function updateRingDisplay(){
+  const ring = document.getElementById('timer-ring');
+  const digits = document.getElementById('timer-digits');
+  if(!ring || !digits) return;
+  const progress = timerRemaining / timerTotal;
+  ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - progress);
+  digits.textContent = formatTime(timerRemaining);
+
+  // pulse orange→red in last 10 seconds
+  if(timerRemaining <= 10){
+    ring.style.stroke = 'var(--red)';
+    digits.style.color = 'var(--red)';
+  }
+}
+
+function restoreTimerState(){
+  if(timerDone){
+    const ring = document.getElementById('timer-ring');
+    const digits = document.getElementById('timer-digits');
+    const lbl = document.getElementById('timer-label');
+    const banner = document.getElementById('timer-done-banner');
+    const btn = document.getElementById('timer-start-btn');
+    if(ring){ ring.style.strokeDashoffset = CIRCUMFERENCE; ring.classList.add('done-ring'); }
+    if(digits){ digits.textContent='✓'; digits.style.color='var(--green)'; }
+    if(lbl){ lbl.className='timer-label done-label'; lbl.textContent='BOMBA DETENIDA — OK'; }
+    if(banner){ banner.style.display='block'; }
+    if(btn){ btn.disabled=true; btn.textContent='✓ Completado'; }
+  }
+}
+
+function finishTimer(){
+  const ring = document.getElementById('timer-ring');
+  const digits = document.getElementById('timer-digits');
+  const lbl = document.getElementById('timer-label');
+  const banner = document.getElementById('timer-done-banner');
+  const btn = document.getElementById('timer-start-btn');
+
+  if(ring){ ring.style.strokeDashoffset = CIRCUMFERENCE; ring.classList.add('done-ring'); ring.style.stroke=''; }
+  if(digits){ digits.textContent='✓'; digits.style.color='var(--green)'; }
+  if(lbl){ lbl.className='timer-label done-label'; lbl.textContent='BOMBA DETENIDA — OK'; }
+  if(banner){ banner.style.display='block'; }
+  if(btn){ btn.disabled=true; btn.textContent='✓ Completado'; }
+
+  // Unlock the checkbox for this step
+  const stepDiv = document.querySelector('.sop-step:nth-child(3) .sop-check');
+  if(stepDiv){
+    stepDiv.classList.remove('locked');
+    stepDiv.onclick = ()=>toggleSop(TIMER_STEP_IDX);
+  }
+}
+
+function showTimerWarn(){
+  const el = document.getElementById('timer-warn');
+  if(!el) return;
+  el.style.display='block';
+  setTimeout(()=>{ el.style.display='none'; }, 2500);
+}
+
+function formatTime(secs){
+  const m = Math.floor(secs/60).toString().padStart(2,'0');
+  const s = (secs%60).toString().padStart(2,'0');
+  return `${m}:${s}`;
+}
+
+function toggleSop(i){
+  if(i === TIMER_STEP_IDX && !timerDone) return;
+  sopChecks[i] = !sopChecks[i];
+  saveState();
+  renderSop();
+}
+
+// ═══════════════════════════════════
+// TROUBLESHOOTING
+// ═══════════════════════════════════
+function renderTrouble(){
+  const wrap = document.getElementById('trouble-wrap');
+  wrap.innerHTML = '';
+  TROUBLES.forEach(t=>{
+    const div = document.createElement('div');
+    div.className = 'trouble-card';
+    const causesHtml = t.causes.map(c=>`<div class="cause-item">${c}</div>`).join('');
+    const actionsHtml = t.actions.map(a=>`<div class="action-item">${a}</div>`).join('');
+    div.innerHTML = `
+      <div class="trouble-hdr" onclick="this.closest('.trouble-card').classList.toggle('open')">
+        <div class="trouble-idx">${t.idx}</div>
+        <div class="trouble-title">${t.title}</div>
+        <div class="trouble-arr">▾</div>
+      </div>
+      <div class="trouble-body">
+        <div class="trouble-section-lbl">Posibles causas</div>
+        <div class="cause-list">${causesHtml}</div>
+        <div class="trouble-section-lbl">Acciones correctivas</div>
+        <div class="cause-list">${actionsHtml}</div>
+      </div>`;
+    wrap.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════
+// QUIZ
+// ═══════════════════════════════════
+function startQuiz(){
+  quizIdx = 0; quizScore = 0; quizAnswered = false;
+  document.getElementById('quiz-result').style.display='none';
+  go('s-quiz');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = QUIZ_Q[quizIdx];
+  document.getElementById('quiz-badge').textContent = `${quizIdx+1}/10`;
+  document.getElementById('quiz-q-count').textContent = `Pregunta ${quizIdx+1} de 10`;
+  document.getElementById('quiz-question').textContent = q.q;
+  document.getElementById('quiz-fill').style.width = ((quizIdx+1)/10*100)+'%';
+  document.getElementById('quiz-feedback').style.display='none';
+  document.getElementById('quiz-next').style.display='none';
+  quizAnswered = false;
+
+  const opts = document.getElementById('quiz-opts');
+  opts.innerHTML = '';
+  q.opts.forEach((opt,i)=>{
+    const btn = document.createElement('div');
+    btn.className='quiz-opt';
+    btn.textContent = opt;
+    btn.onclick = ()=>answerQuiz(i);
+    opts.appendChild(btn);
+  });
+}
+
+function answerQuiz(chosen){
+  if(quizAnswered) return;
+  quizAnswered = true;
+  const q = QUIZ_Q[quizIdx];
+  const opts = document.querySelectorAll('.quiz-opt');
+  const fb = document.getElementById('quiz-feedback');
+
+  opts.forEach((o,i)=>{
+    if(i===q.ans) o.classList.add('reveal');
+    else if(i===chosen && chosen!==q.ans) o.classList.add('wrong');
+  });
+
+  if(chosen===q.ans){
+    quizScore++;
+    fb.className='quiz-feedback ok';
+    fb.textContent='✓ Correcto — '+q.exp;
+  } else {
+    fb.className='quiz-feedback err';
+    fb.textContent='✗ Incorrecto — '+q.exp;
+  }
+  fb.style.display='block';
+  document.getElementById('quiz-next').style.display='block';
+}
+
+function nextQuestion(){
+  quizIdx++;
+  if(quizIdx >= QUIZ_Q.length){
+    showQuizResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showQuizResult(){
+  document.getElementById('quiz-opts').innerHTML='';
+  document.getElementById('quiz-feedback').style.display='none';
+  document.getElementById('quiz-next').style.display='none';
+  const res = document.getElementById('quiz-result');
+  res.style.display='block';
+  document.getElementById('quiz-score-num').textContent = quizScore;
+  const pass = quizScore >= 7;
+  document.getElementById('quiz-verdict').innerHTML = pass
+    ? '<div class="quiz-pass">✓ APROBADO</div><p style="font-size:13px;color:var(--text-dim);margin-top:6px;">Has superado el umbral del 70%. Módulo desbloqueado.</p>'
+    : '<div class="quiz-fail">✗ NO APROBADO</div><p style="font-size:13px;color:var(--text-dim);margin-top:6px;">Necesitas 7 de 10. Revisa las secciones y vuelve a intentarlo.</p>';
+  if(pass) markDone('quiz');
+}
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+renderHome();
+renderSop();
+renderTrouble();
+</script>
+</body>
+</html>

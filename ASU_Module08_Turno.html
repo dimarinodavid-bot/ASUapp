@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Módulo 08 — Comunicación de Turno | ASU Venezuela 15TPD</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--bg4:#22223a;
+  --indigo:#6366f1;--indigo-dim:#6366f122;--indigo-mid:#6366f166;
+  --green:#22c55e;--green-dim:#22c55e18;--green-mid:#22c55e66;
+  --red:#ef4444;--red-dim:#ef444418;--red-mid:#ef444466;
+  --yellow:#f59e0b;--yellow-dim:#f59e0b18;--yellow-mid:#f59e0b66;
+  --orange:#ff6b1a;--orange-dim:#ff6b1a22;--orange-mid:#ff6b1a66;
+  --blue:#3b82f6;--blue-dim:#3b82f618;
+  --text:#e8e8f0;--text-dim:#8888aa;--border:#2a2a3f;
+  --font-d:'Barlow Condensed',sans-serif;
+  --font-b:'Barlow',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);min-height:100vh;}
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* HEADER */
+.hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;
+  display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.hdr-back{width:40px;height:40px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;font-size:18px;color:var(--text-dim);}
+.hdr-back:active{background:var(--bg4);}
+.hdr-info{flex:1;min-width:0;}
+.hdr-tag{font-family:var(--font-d);font-size:10px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--indigo);margin-bottom:2px;}
+.hdr-title{font-family:var(--font-d);font-size:18px;font-weight:800;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hdr-action{width:40px;height:40px;background:var(--indigo);color:#fff;
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;font-size:18px;font-weight:800;}
+.hdr-action:active{opacity:.85;}
+
+.scroll-body{flex:1;overflow-y:auto;padding-bottom:32px;}
+.section-title{font-family:var(--font-d);font-size:12px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--indigo);padding:16px 16px 8px;}
+
+/* HOME TABS */
+.tab-bar{background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;overflow-x:auto;scrollbar-width:none;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;padding:14px 16px;font-family:var(--font-d);font-size:14px;
+  font-weight:700;color:var(--text-dim);cursor:pointer;border-bottom:3px solid transparent;
+  letter-spacing:1px;white-space:nowrap;}
+.tab-btn.active{color:var(--indigo);border-bottom-color:var(--indigo);}
+.tab-btn:active{opacity:.8;}
+
+/* NOVA QUICK STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
+  padding:12px 16px 0;}
+.stat-chip{background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  padding:8px 6px;text-align:center;}
+.stat-val{font-family:var(--font-d);font-size:20px;font-weight:800;}
+.stat-lbl{font-size:9px;color:var(--text-dim);margin-top:1px;line-height:1.2;}
+
+/* FILTER BAR */
+.filter-bar{padding:10px 16px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;}
+.filter-bar::-webkit-scrollbar{display:none;}
+.filter-pill{flex-shrink:0;padding:6px 12px;border-radius:99px;font-family:var(--font-d);
+  font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);
+  background:var(--bg3);color:var(--text-dim);}
+.filter-pill.active{background:var(--indigo-dim);border-color:var(--indigo);color:var(--indigo);}
+
+/* NOVEDAD CARD */
+.nova-card{margin:4px 16px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;}
+.nova-card-top{padding:12px 14px;display:flex;gap:10px;align-items:flex-start;}
+.nova-badge{flex-shrink:0;padding:3px 8px;border-radius:6px;font-family:var(--font-d);
+  font-size:10px;font-weight:800;letter-spacing:1px;}
+.nova-badge.novedad{background:var(--blue-dim);color:var(--blue);border:1px solid #3b82f666;}
+.nova-badge.alarma{background:var(--yellow-dim);color:var(--yellow);border:1px solid var(--yellow-mid);}
+.nova-badge.trabajo{background:var(--orange-dim);color:var(--orange);border:1px solid var(--orange-mid);}
+.nova-badge.pendiente{background:var(--red-dim);color:var(--red);border:1px solid var(--red-mid);}
+.nova-badge.observacion{background:var(--indigo-dim);color:var(--indigo);border:1px solid var(--indigo-mid);}
+.nova-badge.resuelto{background:var(--green-dim);color:var(--green);border:1px solid var(--green-mid);}
+.nova-body{flex:1;min-width:0;}
+.nova-sistema{font-family:var(--font-d);font-size:12px;font-weight:700;color:var(--indigo);margin-bottom:2px;}
+.nova-desc{font-size:13px;line-height:1.5;margin-bottom:6px;}
+.nova-meta{font-size:11px;color:var(--text-dim);}
+.nova-actions{padding:0 14px 10px;display:flex;gap:6px;}
+.nova-act-btn{padding:6px 12px;border-radius:6px;border:none;font-family:var(--font-d);
+  font-size:11px;font-weight:800;cursor:pointer;letter-spacing:1px;}
+.nova-act-btn.resolve{background:var(--green-dim);color:var(--green);border:1px solid var(--green-mid);}
+.nova-act-btn.delete{background:var(--red-dim);color:var(--red);border:1px solid var(--red-mid);}
+.nova-act-btn:active{opacity:.8;}
+
+/* EMPTY STATE */
+.empty-state{padding:40px 24px;text-align:center;}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+.empty-title{font-family:var(--font-d);font-size:22px;font-weight:800;
+  color:var(--text-dim);margin-bottom:6px;}
+.empty-sub{font-size:13px;color:var(--text-dim);}
+
+/* FAB */
+.fab{position:fixed;bottom:24px;right:20px;width:56px;height:56px;
+  background:var(--indigo);border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:28px;cursor:pointer;
+  box-shadow:0 4px 20px #6366f144;z-index:99;}
+.fab:active{opacity:.85;transform:scale(.95);}
+
+/* FORM */
+.form-group{padding:0 16px 12px;}
+.form-label{font-family:var(--font-d);font-size:11px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);
+  margin-bottom:8px;display:block;}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--bg3);
+  border:1px solid var(--border);border-radius:10px;padding:12px 14px;
+  font-family:var(--font-b);font-size:15px;color:var(--text);outline:none;
+  -webkit-appearance:none;appearance:none;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--indigo);}
+.form-textarea{height:100px;resize:none;line-height:1.5;}
+.form-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238888aa' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;}
+.chip-select{display:flex;flex-wrap:wrap;gap:8px;}
+.chip-opt{padding:8px 14px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:8px;font-family:var(--font-d);font-size:13px;font-weight:700;
+  cursor:pointer;color:var(--text-dim);}
+.chip-opt.selected{border-color:var(--indigo);color:var(--indigo);background:var(--indigo-dim);}
+.chip-opt:active{opacity:.8;}
+
+/* ENTREGA DE TURNO */
+.sistema-row{margin:4px 16px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;}
+.sistema-icon{font-size:20px;flex-shrink:0;}
+.sistema-name{flex:1;font-family:var(--font-d);font-size:16px;font-weight:800;}
+.sistema-status-btns{display:flex;gap:6px;}
+.status-btn{padding:6px 10px;border-radius:6px;border:1px solid var(--border);
+  background:var(--bg3);font-family:var(--font-d);font-size:11px;font-weight:800;
+  cursor:pointer;color:var(--text-dim);}
+.status-btn.sel-ok{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.status-btn.sel-nov{background:var(--yellow-dim);border-color:var(--yellow);color:var(--yellow);}
+.status-btn.sel-stop{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+.status-btn:active{opacity:.8;}
+
+.turno-field{background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;width:100%;font-family:var(--font-b);font-size:15px;
+  color:var(--text);outline:none;margin-bottom:8px;}
+.turno-field:focus{border-color:var(--indigo);}
+
+.entrega-card{margin:0 16px 10px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;}
+.entrega-card-hdr{background:var(--bg3);padding:10px 14px;display:flex;
+  justify-content:space-between;align-items:center;}
+.entrega-turno{font-family:var(--font-d);font-size:15px;font-weight:800;}
+.entrega-date{font-size:11px;color:var(--text-dim);}
+.entrega-body{padding:12px 14px;}
+.entrega-row{display:flex;justify-content:space-between;align-items:center;
+  padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.entrega-row:last-child{border-bottom:none;}
+.entrega-row-lbl{color:var(--text-dim);}
+.entrega-row-val{font-family:var(--font-d);font-weight:800;font-size:13px;}
+.entrega-section-title{font-family:var(--font-d);font-size:10px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);
+  margin:8px 0 4px;}
+
+/* BUTTONS */
+.btn-primary{display:block;width:calc(100% - 32px);margin:0 16px 10px;
+  background:var(--indigo);color:#fff;border:none;border-radius:10px;padding:16px;
+  font-family:var(--font-d);font-size:18px;font-weight:800;cursor:pointer;letter-spacing:1px;}
+.btn-primary:active{opacity:.85;}
+.btn-secondary{display:block;width:calc(100% - 32px);margin:0 16px 10px;
+  background:transparent;color:var(--text-dim);border:1px solid var(--border);
+  border-radius:10px;padding:14px;font-family:var(--font-d);font-size:16px;
+  font-weight:700;cursor:pointer;}
+.spacer{height:16px;}
+.divider{height:1px;background:var(--border);margin:4px 16px 12px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ MAIN — LIBRO DE NOVEDADES ═══ -->
+<div id="s-main" class="screen active">
+  <div class="hdr">
+    <div class="hdr-info">
+      <div class="hdr-tag">Módulo 08 · AA-P23023</div>
+      <div class="hdr-title">Comunicación de Turno</div>
+    </div>
+    <div class="hdr-action" onclick="go('s-nueva')">+</div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-btn active" id="tab-libro" onclick="switchTab('libro')">📋 NOVEDADES</div>
+    <div class="tab-btn" id="tab-entrega" onclick="switchTab('entrega')">🔄 ENTREGA</div>
+    <div class="tab-btn" id="tab-historial" onclick="switchTab('historial')">📚 HISTORIAL</div>
+  </div>
+
+  <!-- TAB: NOVEDADES -->
+  <div id="tab-libro-content" class="scroll-body">
+    <div class="stats-row">
+      <div class="stat-chip">
+        <div class="stat-val" style="color:var(--yellow)" id="cnt-alarma">0</div>
+        <div class="stat-lbl">Alarmas</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-val" style="color:var(--orange)" id="cnt-trabajo">0</div>
+        <div class="stat-lbl">Trabajos</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-val" style="color:var(--red)" id="cnt-pendiente">0</div>
+        <div class="stat-lbl">Pendientes</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-val" style="color:var(--green)" id="cnt-resuelto">0</div>
+        <div class="stat-lbl">Resueltos</div>
+      </div>
+    </div>
+
+    <div class="filter-bar" id="filter-bar">
+      <div class="filter-pill active" data-filter="todos" onclick="setFilter('todos',this)">Todos</div>
+      <div class="filter-pill" data-filter="alarma" onclick="setFilter('alarma',this)">⚠ Alarma</div>
+      <div class="filter-pill" data-filter="trabajo" onclick="setFilter('trabajo',this)">🔧 Trabajo</div>
+      <div class="filter-pill" data-filter="pendiente" onclick="setFilter('pendiente',this)">⏳ Pendiente</div>
+      <div class="filter-pill" data-filter="novedad" onclick="setFilter('novedad',this)">📌 Novedad</div>
+      <div class="filter-pill" data-filter="resuelto" onclick="setFilter('resuelto',this)">✓ Resuelto</div>
+    </div>
+
+    <div id="novedades-list"></div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- TAB: ENTREGA -->
+  <div id="tab-entrega-content" class="scroll-body" style="display:none;">
+    <div class="section-title">ENTREGA DE TURNO</div>
+
+    <div style="padding:0 16px 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div>
+        <div style="font-family:var(--font-d);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Turno saliente</div>
+        <select class="turno-field" id="turno-sal" style="margin-bottom:0;">
+          <option value="A">Turno A</option>
+          <option value="B">Turno B</option>
+          <option value="C">Turno C</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-family:var(--font-d);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Operativo saliente</div>
+        <input class="turno-field" id="op-sal" placeholder="Nombre" style="margin-bottom:0;">
+      </div>
+      <div>
+        <div style="font-family:var(--font-d);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Turno entrante</div>
+        <select class="turno-field" id="turno-ent" style="margin-bottom:0;">
+          <option value="B">Turno B</option>
+          <option value="C">Turno C</option>
+          <option value="A">Turno A</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-family:var(--font-d);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Operativo entrante</div>
+        <input class="turno-field" id="op-ent" placeholder="Nombre" style="margin-bottom:0;">
+      </div>
+    </div>
+
+    <div class="section-title">ESTADO DE SISTEMAS</div>
+    <div id="sistemas-wrap"></div>
+
+    <div class="section-title">NIVEL DE PRODUCTOS</div>
+    <div style="padding:0 16px 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div>
+        <div style="font-family:var(--font-d);font-size:11px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">LOX — SV1701 (mm)</div>
+        <input type="number" class="turno-field" id="nivel-lox" placeholder="ej: 1500" style="margin-bottom:0;">
+      </div>
+      <div>
+        <div style="font-family:var(--font-d);font-size:11px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">LIN — SV1801 (mm)</div>
+        <input type="number" class="turno-field" id="nivel-lin" placeholder="ej: 1200" style="margin-bottom:0;">
+      </div>
+    </div>
+
+    <div class="section-title">ALARMAS ACTIVAS AL ENTREGAR</div>
+    <div class="form-group">
+      <textarea class="form-textarea" id="alarmas-activas" placeholder="Ej: TIA-1102 en 12°C (cerca de alarma), FIAS-1201 en 1,350 Nm³/h...&#10;Si no hay alarmas activas, escribir: Ninguna"></textarea>
+    </div>
+
+    <div class="section-title">TRABAJOS EN CURSO / PERMISOS ACTIVOS</div>
+    <div class="form-group">
+      <textarea class="form-textarea" id="trabajos-curso" placeholder="Ej: PT-2024-045 — Inspección filtro AF1001 (Mecánico: J. Pérez)&#10;Si no hay permisos activos, escribir: Ninguno"></textarea>
+    </div>
+
+    <div class="section-title">PENDIENTES PARA EL TURNO ENTRANTE</div>
+    <div class="form-group">
+      <textarea class="form-textarea" id="pendientes-turno" placeholder="Ej: Verificar fuga menor en brida 3&#34; salida C1 a las 02:00 h&#10;Si no hay pendientes, escribir: Sin pendientes"></textarea>
+    </div>
+
+    <div class="section-title">OBSERVACIONES GENERALES</div>
+    <div class="form-group">
+      <textarea class="form-textarea" id="obs-generales" placeholder="Cualquier información adicional relevante para el turno entrante..."></textarea>
+    </div>
+
+    <div style="padding:0 16px 12px;">
+      <button class="btn-primary" onclick="guardarEntrega()">💾 Guardar Entrega de Turno</button>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- TAB: HISTORIAL ENTREGAS -->
+  <div id="tab-historial-content" class="scroll-body" style="display:none;">
+    <div class="section-title">HISTORIAL DE ENTREGAS</div>
+    <div id="historial-list"></div>
+    <div style="padding:0 16px;">
+      <button class="btn-secondary" onclick="clearHistorial()">🗑️ Borrar historial de entregas</button>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- FAB -->
+  <div class="fab" onclick="go('s-nueva')" id="main-fab">+</div>
+</div>
+
+<!-- ═══ NUEVA NOVEDAD ═══ -->
+<div id="s-nueva" class="screen">
+  <div class="hdr">
+    <div class="hdr-back" onclick="go('s-main')">‹</div>
+    <div class="hdr-info">
+      <div class="hdr-tag">Nueva Novedad</div>
+      <div class="hdr-title">Registrar evento de turno</div>
+    </div>
+  </div>
+  <div class="scroll-body">
+    <div class="section-title">TIPO DE NOVEDAD</div>
+    <div class="form-group">
+      <div class="chip-select" id="tipo-chips">
+        <div class="chip-opt" data-val="novedad" onclick="selectChip('tipo',this)">📌 Novedad</div>
+        <div class="chip-opt" data-val="alarma" onclick="selectChip('tipo',this)">⚠️ Alarma</div>
+        <div class="chip-opt" data-val="trabajo" onclick="selectChip('tipo',this)">🔧 Trabajo</div>
+        <div class="chip-opt" data-val="pendiente" onclick="selectChip('tipo',this)">⏳ Pendiente</div>
+        <div class="chip-opt" data-val="observacion" onclick="selectChip('tipo',this)">💬 Observación</div>
+      </div>
+    </div>
+
+    <div class="section-title">SISTEMA AFECTADO</div>
+    <div class="form-group">
+      <div class="chip-select" id="sistema-chips">
+        <div class="chip-opt" data-val="AC1001" onclick="selectChip('sistema',this)">⚙️ AC1001</div>
+        <div class="chip-opt" data-val="RU1101" onclick="selectChip('sistema',this)">❄️ RU1101</div>
+        <div class="chip-opt" data-val="PPU1201" onclick="selectChip('sistema',this)">🧪 PPU1201</div>
+        <div class="chip-opt" data-val="ET401" onclick="selectChip('sistema',this)">💨 ET401</div>
+        <div class="chip-opt" data-val="Cold Box" onclick="selectChip('sistema',this)">🏛️ Cold Box</div>
+        <div class="chip-opt" data-val="Tanques" onclick="selectChip('sistema',this)">🛢️ Tanques</div>
+        <div class="chip-opt" data-val="Agua" onclick="selectChip('sistema',this)">💧 Agua</div>
+        <div class="chip-opt" data-val="Eléctrico" onclick="selectChip('sistema',this)">⚡ Eléctrico</div>
+        <div class="chip-opt" data-val="General" onclick="selectChip('sistema',this)">🏭 General</div>
+      </div>
+    </div>
+
+    <div class="section-title">TURNO</div>
+    <div class="form-group">
+      <div class="chip-select" id="turno-chips">
+        <div class="chip-opt" data-val="A" onclick="selectChip('turno',this)">TURNO A</div>
+        <div class="chip-opt" data-val="B" onclick="selectChip('turno',this)">TURNO B</div>
+        <div class="chip-opt" data-val="C" onclick="selectChip('turno',this)">TURNO C</div>
+      </div>
+    </div>
+
+    <div class="section-title">DESCRIPCIÓN</div>
+    <div class="form-group">
+      <textarea class="form-textarea" id="nova-desc"
+        placeholder="Describe con detalle: qué ocurrió, qué valores se observaron, qué acción se tomó..."
+        style="height:130px;"></textarea>
+    </div>
+
+    <div class="section-title">TAG / INSTRUMENTO (opcional)</div>
+    <div class="form-group">
+      <input class="form-input" id="nova-tag" placeholder="Ej: TIA-1102, PIAS-406, AIAS-2...">
+    </div>
+
+    <div style="padding:0 16px 12px;">
+      <button class="btn-primary" onclick="guardarNovedad()">💾 Guardar Novedad</button>
+      <button class="btn-secondary" onclick="go('s-main')">Cancelar</button>
+    </div>
+    <div class="spacer"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════ STATE ═══════════════
+const KEY = 'asu_m08';
+let state = JSON.parse(localStorage.getItem(KEY)||'{}');
+if(!state.novedades) state.novedades = [];
+if(!state.entregas) state.entregas = [];
+if(!state.sistemaStatus) state.sistemaStatus = {};
+
+let currentFilter = 'todos';
+let activeTab = 'libro';
+
+// Form temp state
+let formTipo = '';
+let formSistema = '';
+let formTurno = '';
+
+function saveLS(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+
+// ═══════════════ NAVIGATION ═══════════════
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='s-main') refreshAll();
+  if(id==='s-nueva') resetForm();
+}
+
+function switchTab(tab){
+  activeTab = tab;
+  ['libro','entrega','historial'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('tab-'+t+'-content').style.display = t===tab?'flex':'none';
+    if(t===tab) document.getElementById('tab-'+t+'-content').style.display='block';
+  });
+  document.getElementById('main-fab').style.display = tab==='libro'?'flex':'none';
+  if(tab==='historial') renderHistorial();
+  if(tab==='libro') renderNovedades();
+  if(tab==='entrega') renderSistemas();
+}
+
+// ═══════════════ CHIPS ═══════════════
+function selectChip(group, el){
+  const container = document.getElementById(group+'-chips')||el.closest('.chip-select');
+  container.querySelectorAll('.chip-opt').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  if(group==='tipo') formTipo = el.dataset.val;
+  if(group==='sistema') formSistema = el.dataset.val;
+  if(group==='turno') formTurno = el.dataset.val;
+}
+
+// ═══════════════ FILTER ═══════════════
+function setFilter(f, el){
+  currentFilter = f;
+  document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderNovedades();
+}
+
+// ═══════════════ RENDER NOVEDADES ═══════════════
+function renderNovedades(){
+  // Stats
+  const tipos = ['alarma','trabajo','pendiente','resuelto'];
+  tipos.forEach(t=>{
+    const el = document.getElementById('cnt-'+t);
+    if(el) el.textContent = state.novedades.filter(n=>n.tipo===t).length;
+  });
+
+  let lista = currentFilter==='todos'
+    ? state.novedades
+    : state.novedades.filter(n=>n.tipo===currentFilter);
+
+  // Sort: pendientes/alarmas first, then by date desc
+  lista = lista.slice().sort((a,b)=>{
+    const order = {alarma:0,pendiente:1,trabajo:2,novedad:3,observacion:4,resuelto:5};
+    const oa = order[a.tipo]??3, ob = order[b.tipo]??3;
+    if(oa!==ob) return oa-ob;
+    return b.id - a.id;
+  });
+
+  const wrap = document.getElementById('novedades-list');
+  if(lista.length===0){
+    wrap.innerHTML=`<div class="empty-state">
+      <div class="empty-icon">${currentFilter==='todos'?'📋':'🔍'}</div>
+      <div class="empty-title">${currentFilter==='todos'?'Sin novedades':'Sin registros'}</div>
+      <div class="empty-sub">${currentFilter==='todos'?'Toca + para registrar una novedad':'No hay novedades de este tipo'}</div>
+    </div>`;
+    return;
+  }
+
+  wrap.innerHTML = lista.map(n=>{
+    const dt = new Date(n.id);
+    const pad = x=>String(x).padStart(2,'0');
+    const dateStr = `${pad(dt.getDate())}/${pad(dt.getMonth()+1)} ${pad(dt.getHours())}:${pad(dt.getMinutes())} · T${n.turno||'—'}`;
+    const resolveBtn = n.tipo!=='resuelto'
+      ? `<button class="nova-act-btn resolve" onclick="resolverNovedad(${n.id})">✓ Resolver</button>`
+      : '';
+    return `<div class="nova-card">
+      <div class="nova-card-top">
+        <div>
+          <div class="nova-badge ${n.tipo}">${labelTipo(n.tipo)}</div>
+        </div>
+        <div class="nova-body">
+          <div class="nova-sistema">${n.sistema||'General'}${n.tag?' · '+n.tag:''}</div>
+          <div class="nova-desc">${escHtml(n.desc)}</div>
+          <div class="nova-meta">${dateStr}${n.autor?' · '+escHtml(n.autor):''}</div>
+        </div>
+      </div>
+      <div class="nova-actions">
+        ${resolveBtn}
+        <button class="nova-act-btn delete" onclick="eliminarNovedad(${n.id})">🗑 Eliminar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function labelTipo(t){
+  const m={novedad:'📌 NOVEDAD',alarma:'⚠️ ALARMA',trabajo:'🔧 TRABAJO',
+    pendiente:'⏳ PENDIENTE',observacion:'💬 OBSERVACIÓN',resuelto:'✓ RESUELTO'};
+  return m[t]||t.toUpperCase();
+}
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ═══════════════ SAVE NOVEDAD ═══════════════
+function resetForm(){
+  formTipo=''; formSistema=''; formTurno='';
+  document.querySelectorAll('.chip-opt').forEach(c=>c.classList.remove('selected'));
+  const d=document.getElementById('nova-desc'); if(d) d.value='';
+  const t=document.getElementById('nova-tag'); if(t) t.value='';
+}
+
+function guardarNovedad(){
+  const desc = document.getElementById('nova-desc')?.value?.trim();
+  if(!formTipo){ alert('Selecciona el tipo de novedad'); return; }
+  if(!formSistema){ alert('Selecciona el sistema afectado'); return; }
+  if(!desc){ alert('Describe la novedad'); return; }
+
+  const tag = document.getElementById('nova-tag')?.value?.trim();
+  state.novedades.unshift({
+    id: Date.now(),
+    tipo: formTipo,
+    sistema: formSistema,
+    turno: formTurno||'—',
+    tag: tag||'',
+    desc,
+    autor:'',
+  });
+  saveLS();
+  go('s-main');
+}
+
+function resolverNovedad(id){
+  const n = state.novedades.find(x=>x.id===id);
+  if(n){ n.tipo='resuelto'; n.resueltaEn=Date.now(); saveLS(); renderNovedades(); }
+}
+
+function eliminarNovedad(id){
+  if(confirm('¿Eliminar esta novedad?')){
+    state.novedades = state.novedades.filter(x=>x.id!==id);
+    saveLS(); renderNovedades();
+  }
+}
+
+// ═══════════════ SISTEMAS ═══════════════
+const SISTEMAS = [
+  {id:'ac',name:'AC1001 — Compresor',icon:'⚙️'},
+  {id:'ru',name:'RU1101 — Preenfriamiento',icon:'❄️'},
+  {id:'ppu',name:'PPU1201 — Purificación',icon:'🧪'},
+  {id:'et',name:'ET401 — Expansor',icon:'💨'},
+  {id:'cb',name:'Cold Box — C1/C2/K1',icon:'🏛️'},
+  {id:'lox',name:'Tanque LOX — SV1701',icon:'🩸'},
+  {id:'lin',name:'Tanque LIN — SV1801',icon:'💧'},
+];
+
+function renderSistemas(){
+  const wrap = document.getElementById('sistemas-wrap');
+  wrap.innerHTML = SISTEMAS.map(s=>{
+    const cur = state.sistemaStatus[s.id]||'ok';
+    return `<div class="sistema-row">
+      <span class="sistema-icon">${s.icon}</span>
+      <span class="sistema-name">${s.name}</span>
+      <div class="sistema-status-btns">
+        <button class="status-btn ${cur==='ok'?'sel-ok':''}" onclick="setSisStatus('${s.id}','ok',this)">OK</button>
+        <button class="status-btn ${cur==='nov'?'sel-nov':''}" onclick="setSisStatus('${s.id}','nov',this)">NOV</button>
+        <button class="status-btn ${cur==='stop'?'sel-stop':''}" onclick="setSisStatus('${s.id}','stop',this)">STOP</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setSisStatus(id, status, el){
+  state.sistemaStatus[id] = status;
+  saveLS();
+  // Update buttons in this row
+  el.closest('.sistema-row').querySelectorAll('.status-btn').forEach(b=>{
+    b.className='status-btn';
+  });
+  el.className=`status-btn sel-${status}`;
+}
+
+// ═══════════════ GUARDAR ENTREGA ═══════════════
+function guardarEntrega(){
+  const entry = {
+    id: Date.now(),
+    turnoSal: document.getElementById('turno-sal')?.value||'—',
+    turnoEnt: document.getElementById('turno-ent')?.value||'—',
+    opSal: document.getElementById('op-sal')?.value?.trim()||'—',
+    opEnt: document.getElementById('op-ent')?.value?.trim()||'—',
+    sistemas: {...state.sistemaStatus},
+    nivelLox: document.getElementById('nivel-lox')?.value||'—',
+    nivelLin: document.getElementById('nivel-lin')?.value||'—',
+    alarmasActivas: document.getElementById('alarmas-activas')?.value?.trim()||'—',
+    trabajosCurso: document.getElementById('trabajos-curso')?.value?.trim()||'—',
+    pendientes: document.getElementById('pendientes-turno')?.value?.trim()||'—',
+    obs: document.getElementById('obs-generales')?.value?.trim()||'—',
+  };
+  state.entregas.unshift(entry);
+  if(state.entregas.length>20) state.entregas=state.entregas.slice(0,20);
+  saveLS();
+
+  const btn = document.querySelector('.btn-primary');
+  if(btn){ btn.textContent='✓ Guardado'; setTimeout(()=>{ btn.textContent='💾 Guardar Entrega de Turno'; },2000); }
+  switchTab('historial');
+}
+
+// ═══════════════ HISTORIAL ═══════════════
+function renderHistorial(){
+  const wrap = document.getElementById('historial-list');
+  if(!state.entregas||state.entregas.length===0){
+    wrap.innerHTML=`<div class="empty-state">
+      <div class="empty-icon">📚</div>
+      <div class="empty-title">Sin entregas guardadas</div>
+      <div class="empty-sub">Usa la pestaña Entrega para registrar</div>
+    </div>`;
+    return;
+  }
+
+  const statusLabel = {ok:'✓ OK',nov:'⚠ NOV',stop:'🔴 STOP'};
+  const statusColor = {ok:'var(--green)',nov:'var(--yellow)',stop:'var(--red)'};
+
+  wrap.innerHTML = state.entregas.map(e=>{
+    const dt = new Date(e.id);
+    const pad=x=>String(x).padStart(2,'0');
+    const dateStr=`${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+
+    const sisRows = SISTEMAS.map(s=>{
+      const st = e.sistemas[s.id]||'ok';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;
+        padding:4px 0;border-bottom:1px solid var(--border);font-size:12px;">
+        <span style="color:var(--text-dim)">${s.icon} ${s.name.split(' — ')[0]}</span>
+        <span style="font-family:var(--font-d);font-weight:800;font-size:11px;
+          color:${statusColor[st]}">${statusLabel[st]}</span>
+      </div>`;
+    }).join('');
+
+    const fields = [
+      {l:'LOX SV1701',v:e.nivelLox+' mm'},
+      {l:'LIN SV1801',v:e.nivelLin+' mm'},
+    ];
+
+    const hasAlarm = e.alarmasActivas && e.alarmasActivas!=='—' && e.alarmasActivas!=='Ninguna';
+    const hasTrab = e.trabajosCurso && e.trabajosCurso!=='—' && e.trabajosCurso!=='Ninguno';
+    const hasPend = e.pendientes && e.pendientes!=='—' && e.pendientes!=='Sin pendientes';
+
+    return `<div class="entrega-card">
+      <div class="entrega-card-hdr">
+        <div>
+          <div class="entrega-turno">T${e.turnoSal} → T${e.turnoEnt} · ${escHtml(e.opSal)} → ${escHtml(e.opEnt)}</div>
+          <div class="entrega-date">${dateStr}</div>
+        </div>
+        <button onclick="eliminarEntrega(${e.id})" style="background:var(--red-dim);border:1px solid var(--red-mid);
+          color:var(--red);border-radius:6px;padding:4px 8px;font-family:var(--font-d);
+          font-size:11px;font-weight:800;cursor:pointer;">DEL</button>
+      </div>
+      <div class="entrega-body">
+        <div class="entrega-section-title">SISTEMAS</div>
+        ${sisRows}
+        <div class="entrega-section-title" style="margin-top:10px;">NIVEL PRODUCTOS</div>
+        ${fields.map(f=>`<div class="entrega-row">
+          <span class="entrega-row-lbl">${f.l}</span>
+          <span class="entrega-row-val">${escHtml(f.v)}</span>
+        </div>`).join('')}
+        ${hasAlarm?`<div class="entrega-section-title" style="margin-top:10px;color:var(--yellow);">⚠ ALARMAS ACTIVAS</div>
+          <div style="font-size:12px;color:var(--yellow);line-height:1.5;padding:4px 0;">${escHtml(e.alarmasActivas)}</div>`:''}
+        ${hasTrab?`<div class="entrega-section-title" style="margin-top:8px;color:var(--orange);">🔧 TRABAJOS / PERMISOS</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.5;padding:4px 0;">${escHtml(e.trabajosCurso)}</div>`:''}
+        ${hasPend?`<div class="entrega-section-title" style="margin-top:8px;color:var(--red);">⏳ PENDIENTES</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.5;padding:4px 0;">${escHtml(e.pendientes)}</div>`:''}
+        ${e.obs&&e.obs!=='—'?`<div class="entrega-section-title" style="margin-top:8px;">OBSERVACIONES</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.5;padding:4px 0;">${escHtml(e.obs)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function eliminarEntrega(id){
+  if(confirm('¿Eliminar esta entrega?')){
+    state.entregas=state.entregas.filter(e=>e.id!==id);
+    saveLS(); renderHistorial();
+  }
+}
+
+function clearHistorial(){
+  if(confirm('¿Borrar todo el historial de entregas?')){
+    state.entregas=[];
+    saveLS(); renderHistorial();
+  }
+}
+
+function refreshAll(){
+  renderNovedades();
+  renderSistemas();
+}
+
+// INIT
+refreshAll();
+</script>
+</body>
+</html>
