@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d0d0d">
+<title>ScanExcel</title>
+<style>
+:root{--bg:#0d0d0d;--s:#161616;--s2:#1e1e1e;--b:#282828;
+  --g:#00e676;--r:#ff5252;--a:#ffab40;--t:#f2f2f2;--m:#5a5a5a}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--t);font-family:system-ui,sans-serif;
+  min-height:100vh;display:flex;flex-direction:column}
+
+header{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;
+  background:var(--s);border-bottom:1px solid var(--b);position:sticky;top:0;z-index:200}
+.logo{font-family:monospace;font-size:19px;font-weight:700}
+.logo b{color:var(--g)}
+.badge{font-family:monospace;font-size:12px;background:var(--s2);
+  border:1px solid var(--b);padding:4px 12px;border-radius:20px;color:var(--m)}
+.badge span{color:var(--g);font-weight:700}
+
+.cam-wrap{position:relative;background:#000;width:100%;overflow:hidden;
+  height:56vw;max-height:280px;flex-shrink:0}
+#vid{width:100%;height:100%;object-fit:cover;display:block}
+#cvs{position:absolute;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;opacity:.55}
+
+.cam-idle{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;
+  background:rgba(0,0,0,.88);pointer-events:none}
+.cam-idle .ic{font-size:48px;opacity:.5}
+.cam-idle p{font-size:13px;text-align:center;color:var(--t);line-height:1.7;max-width:220px}
+.cam-idle b{color:var(--g)}
+.cam-idle.hidden{display:none}
+
+.frame-guide{position:absolute;inset:0;display:none;
+  align-items:center;justify-content:center;pointer-events:none;z-index:10}
+.frame-guide.on{display:flex}
+.fb{width:min(270px,76%);height:min(140px,40%);position:relative}
+.fb::before,.fb::after,.fb .c3,.fb .c4{content:'';position:absolute;
+  width:22px;height:22px;border-color:var(--g);border-style:solid}
+.fb::before{top:0;left:0;border-width:3px 0 0 3px}
+.fb::after{top:0;right:0;border-width:3px 3px 0 0}
+.fb .c3{bottom:0;right:0;border-width:0 3px 3px 0}
+.fb .c4{bottom:0;left:0;border-width:0 0 3px 3px}
+
+.cam-status{position:absolute;bottom:0;left:0;right:0;z-index:20;
+  background:rgba(0,0,0,.7);padding:5px 10px;font-family:monospace;
+  font-size:10px;color:var(--g);letter-spacing:1px;text-align:center;
+  text-transform:uppercase;display:none}
+
+.flash{position:fixed;inset:0;background:var(--g);opacity:0;
+  pointer-events:none;z-index:500;transition:opacity .05s}
+.flash.on{opacity:.28}
+
+.controls{display:flex;gap:8px;padding:12px 16px;
+  background:var(--s);border-bottom:1px solid var(--b)}
+.btn{flex:1;padding:13px;border-radius:9px;font-size:12px;font-weight:700;
+  font-family:monospace;letter-spacing:.5px;text-transform:uppercase;
+  cursor:pointer;transition:all .15s;display:flex;align-items:center;
+  justify-content:center;gap:6px;border:1px solid var(--b)}
+.btn:active{transform:scale(.96)}
+.btn-go{background:var(--g);color:#000;border-color:var(--g)}
+.btn-stop{background:transparent;color:var(--t)}
+
+.err-box{display:none;margin:8px 14px;background:rgba(255,82,82,.1);
+  border:1px solid rgba(255,82,82,.3);border-radius:10px;
+  padding:12px 14px;font-size:12px;color:#ff8080;line-height:1.7}
+.err-box strong{display:block;font-size:13px;color:var(--r);margin-bottom:4px}
+
+.manual{display:flex;gap:8px;padding:12px 16px;
+  background:var(--s2);border-bottom:1px solid var(--b)}
+.manual input{flex:1;background:var(--s);border:1px solid var(--b);
+  border-radius:8px;color:var(--t);font-family:monospace;font-size:14px;
+  padding:11px 14px;outline:none;transition:border-color .15s}
+.manual input:focus{border-color:var(--g);box-shadow:0 0 0 2px rgba(0,230,118,.12)}
+.manual input::placeholder{color:var(--m);font-size:12px}
+.btn-plus{background:var(--s);border:1px solid var(--g);color:var(--g);
+  border-radius:8px;padding:11px 18px;font-size:22px;font-weight:700;cursor:pointer}
+.btn-plus:active{background:rgba(0,230,118,.1);transform:scale(.95)}
+
+.list-hdr{padding:12px 16px 6px;display:flex;align-items:center;justify-content:space-between}
+.list-lbl{font-family:monospace;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--m)}
+.items{flex:1;overflow-y:auto;padding:0 16px 96px;
+  display:flex;flex-direction:column;gap:6px}
+.empty{text-align:center;padding:40px 20px;color:var(--m);font-size:13px;line-height:2.2}
+.empty-ic{font-size:36px;display:block;opacity:.25;margin-bottom:6px}
+
+.item{background:var(--s);border:1px solid var(--b);border-radius:10px;
+  padding:11px 13px;display:flex;align-items:center;gap:10px;
+  animation:ini .2s ease-out}
+@keyframes ini{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.item.hi{border-color:var(--g);box-shadow:0 0 14px rgba(0,230,118,.2)}
+.in{font-family:monospace;font-size:10px;color:var(--m);min-width:22px}
+.ii{flex:1;min-width:0}
+.ic2{font-family:monospace;font-size:13px;font-weight:700;color:var(--g);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.im{font-size:11px;color:var(--m);margin-top:2px}
+.qw{display:flex;align-items:center;gap:5px;background:var(--s2);
+  border:1px solid var(--b);border-radius:20px;padding:3px 8px}
+.qb{background:none;border:none;color:var(--g);font-size:18px;
+  font-weight:700;cursor:pointer;padding:0 3px;line-height:1}
+.qv{font-family:monospace;font-size:13px;font-weight:700;min-width:22px;text-align:center}
+.db2{background:none;border:none;color:var(--m);font-size:20px;cursor:pointer;padding:4px}
+.db2:active{color:var(--r)}
+
+.bottom{position:fixed;bottom:0;left:0;right:0;padding:10px 16px;
+  display:flex;gap:8px;background:var(--s);border-top:1px solid var(--b);z-index:100}
+.btn-trash{flex:0;padding:13px 15px;background:transparent;
+  color:var(--r);border-color:rgba(255,82,82,.25)}
+.btn-trash:active{background:rgba(255,82,82,.1)}
+.btn-xl{background:#1a5e36;color:#fff;border-color:#237a46}
+.btn-xl:active{background:#144a2a}
+
+#toast{position:fixed;bottom:76px;left:50%;
+  transform:translateX(-50%) translateY(60px);
+  background:var(--g);color:#000;padding:9px 20px;border-radius:20px;
+  font-family:monospace;font-size:12px;font-weight:700;
+  z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  white-space:nowrap;pointer-events:none}
+#toast.on{transform:translateX(-50%) translateY(0)}
+#toast.err{background:var(--r);color:#fff}
+</style>
+</head>
+<body>
+
+<div class="flash" id="flash"></div>
+
+<header>
+  <div class="logo">Scan<b>Excel</b></div>
+  <div class="badge"><span id="cnt">0</span> items</div>
+</header>
+
+<div class="cam-wrap">
+  <video id="vid" autoplay playsinline muted></video>
+  <canvas id="cvs"></canvas>
+  <div class="cam-idle" id="idle">
+    <span class="ic">📷</span>
+    <p>Pulsa <b>Iniciar cámara</b> para escanear</p>
+  </div>
+  <div class="frame-guide" id="guide">
+    <div class="fb"><div class="c3"></div><div class="c4"></div></div>
+  </div>
+  <div class="cam-status" id="status"></div>
+</div>
+
+<div class="err-box" id="errBox">
+  <strong id="errTitle">Error</strong><span id="errMsg"></span>
+</div>
+
+<div class="controls">
+  <button class="btn btn-go" id="btnCam" onclick="toggleCam()">▶ Iniciar cámara</button>
+</div>
+
+<div class="manual">
+  <input id="manInput" type="text" placeholder="O escribe el código aquí…"
+    onkeydown="if(event.key==='Enter')addManual()">
+  <button class="btn-plus" onclick="addManual()">+</button>
+</div>
+
+<div class="list-hdr"><span class="list-lbl">Códigos escaneados</span></div>
+<div class="items" id="itemsList"></div>
+
+<div class="bottom">
+  <button class="btn btn-trash" onclick="clearAll()">🗑</button>
+  <button class="btn btn-xl" onclick="exportXL()">📊 Exportar Excel</button>
+</div>
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  DECODIFICADOR PURO JS — EAN-13, EAN-8, UPC-A
+// ════════════════════════════════════════════════════════
+
+// Patrones de dígitos
+const L = ['0001101','0011001','0010011','0111101','0100011',
+           '0110001','0101111','0111011','0110111','0001011'];
+const G = ['0100111','0110011','0011011','0100001','0011101',
+           '0111001','0000101','0010001','0001001','0010111'];
+const R = ['1110010','1100110','1101100','1000010','1011100',
+           '1001110','1010000','1000100','1001000','1110100'];
+
+// Estructura del primer dígito EAN-13 (L=L-code, G=G-code)
+const PARITY = ['LLLLLL','LLGLGG','LLGGLG','LLGGGL','LGLLGG',
+                'LGGLLG','LGGGLL','LGLGLG','LGLGGL','LGGLGL'];
+
+function buildLookup() {
+  const map = {};
+  for (let d = 0; d < 10; d++) {
+    map[L[d]] = {d, t:'L'};
+    map[G[d]] = {d, t:'G'};
+    map[R[d]] = {d, t:'R'};
+  }
+  return map;
+}
+const LOOKUP = buildLookup();
+
+// Convierte fila de píxeles a bits (0=oscuro, 1=claro)
+function rowToBits(pixels, width, threshold) {
+  const bits = new Uint8Array(width);
+  for (let x = 0; x < width; x++) {
+    const lum = (pixels[x*4]*299 + pixels[x*4+1]*587 + pixels[x*4+2]*114) / 1000;
+    bits[x] = lum > threshold ? 1 : 0;
+  }
+  return bits;
+}
+
+// Calcula threshold adaptativo para la fila
+function adaptiveThreshold(pixels, width) {
+  let sum = 0;
+  for (let x = 0; x < width; x++) {
+    sum += (pixels[x*4]*299 + pixels[x*4+1]*587 + pixels[x*4+2]*114) / 1000;
+  }
+  return sum / width;
+}
+
+// Obtiene anchos de barras a partir de bits
+function getBarWidths(bits, start, end) {
+  const bars = [];
+  let cur = bits[start], count = 0;
+  for (let i = start; i <= end; i++) {
+    if (bits[i] === cur) { count++; }
+    else { bars.push({v: cur, w: count}); cur = bits[i]; count = 1; }
+  }
+  bars.push({v: cur, w: count});
+  return bars;
+}
+
+// Normaliza anchos de barra a unidades (1-4)
+function normalize(bars, unitW) {
+  return bars.map(b => Math.max(1, Math.min(4, Math.round(b.w / unitW))));
+}
+
+// Convierte lista de anchos de unidades a string de bits
+function widthsToBits(widths, startBit) {
+  let s = '';
+  let bit = startBit;
+  for (const w of widths) {
+    s += String(bit).repeat(w);
+    bit = 1 - bit;
+  }
+  return s;
+}
+
+// Busca guard bar (101) y devuelve posición
+function findGuard(bars, idx) {
+  if (idx + 2 >= bars.length) return -1;
+  const u = bars[idx].w;
+  if (Math.abs(bars[idx].w - u) < u*0.5 &&
+      Math.abs(bars[idx+1].w - u) < u*0.5 &&
+      Math.abs(bars[idx+2].w - u) < u*0.5 &&
+      bars[idx].v === 0 && bars[idx+1].v === 1 && bars[idx+2].v === 0) return idx;
+  return -1;
+}
+
+// Decodifica 7 bits → dígito
+function decodeSeven(bits) {
+  const key = bits.slice(0, 7);
+  return LOOKUP[key] || null;
+}
+
+// Intenta decodificar EAN-13/EAN-8 desde array de barras
+function tryDecode(bars) {
+  // Necesitamos al menos estimación de unit width
+  // Buscar el primer guard bar 101
+  for (let start = 0; start < bars.length - 60; start++) {
+    if (bars[start].v !== 0) continue;
+
+    const unitW = bars[start].w;
+    if (unitW < 1) continue;
+
+    // Tolerancia del 60%
+    const tol = unitW * 0.6;
+
+    // Verificar guard inicial 101
+    if (Math.abs(bars[start].w   - unitW) > tol) continue;
+    if (Math.abs(bars[start+1].w - unitW) > tol) continue;
+    if (Math.abs(bars[start+2].w - unitW) > tol) continue;
+    if (bars[start+1].v !== 1 || bars[start+2].v !== 0) continue;
+
+    // Intentar EAN-13 (6 dígitos izquierda + middle guard + 6 dígitos derecha)
+    let idx = start + 3;
+    const leftDigits = [];
+
+    // 6 dígitos izquierda (4 barras cada uno)
+    for (let d = 0; d < 6; d++) {
+      if (idx + 3 >= bars.length) break;
+      const ws = [bars[idx].w, bars[idx+1].w, bars[idx+2].w, bars[idx+3].w];
+      const unit = (ws[0]+ws[1]+ws[2]+ws[3]) / 7;
+      const norm = ws.map(w => Math.max(1, Math.min(4, Math.round(w / unit))));
+      const sum  = norm.reduce((a,b)=>a+b,0);
+      if (sum !== 7) break;
+
+      const startBit = bars[idx].v;
+      const bitsStr  = widthsToBits(norm, startBit);
+      const decoded  = decodeSeven(bitsStr);
+      if (!decoded) break;
+      leftDigits.push(decoded);
+      idx += 4;
+    }
+
+    if (leftDigits.length !== 6) continue;
+
+    // Middle guard 01010
+    if (idx + 4 >= bars.length) continue;
+    // (barras alternas de 1 unidad)
+    idx += 5;
+
+    const rightDigits = [];
+
+    // 6 dígitos derecha (R-code)
+    for (let d = 0; d < 6; d++) {
+      if (idx + 3 >= bars.length) break;
+      const ws   = [bars[idx].w, bars[idx+1].w, bars[idx+2].w, bars[idx+3].w];
+      const unit = (ws[0]+ws[1]+ws[2]+ws[3]) / 7;
+      const norm = ws.map(w => Math.max(1, Math.min(4, Math.round(w / unit))));
+      const sum  = norm.reduce((a,b)=>a+b,0);
+      if (sum !== 7) break;
+
+      const startBit = bars[idx].v;
+      const bitsStr  = widthsToBits(norm, startBit);
+      const decoded  = decodeSeven(bitsStr);
+      if (!decoded || decoded.t !== 'R') break;
+      rightDigits.push(decoded.d);
+      idx += 4;
+    }
+
+    if (rightDigits.length !== 6) continue;
+
+    // Determinar primer dígito EAN-13 por paridad de los 6 dígitos izquierda
+    const parityStr = leftDigits.map(ld => ld.t).join('');
+    const firstDigit = PARITY.indexOf(parityStr);
+    if (firstDigit === -1) continue;
+
+    const allDigits = [firstDigit, ...leftDigits.map(ld => ld.d), ...rightDigits];
+
+    // Verificar checksum
+    if (ean13Checksum(allDigits)) {
+      return { code: allDigits.join(''), format: 'EAN-13' };
+    }
+  }
+  return null;
+}
+
+function ean13Checksum(digits) {
+  // Últimos 12 dígitos + check digit
+  let sum = 0;
+  for (let i = 0; i < 12; i++) {
+    sum += digits[i] * (i % 2 === 0 ? 1 : 3);
+  }
+  const check = (10 - (sum % 10)) % 10;
+  return check === digits[12];
+}
+
+// Analiza un frame de vídeo y devuelve el código si lo encuentra
+function analyzeFrame(video, canvas) {
+  const W = video.videoWidth;
+  const H = video.videoHeight;
+  if (!W || !H) return null;
+
+  // Reducir resolución para velocidad
+  const scale = Math.min(1, 640 / W);
+  const w = Math.floor(W * scale);
+  const h = Math.floor(H * scale);
+
+  canvas.width  = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, w, h);
+
+  // Escanear múltiples líneas horizontales en la zona central
+  const yStart = Math.floor(h * 0.25);
+  const yEnd   = Math.floor(h * 0.75);
+  const step   = Math.max(2, Math.floor((yEnd - yStart) / 20));
+
+  for (let y = yStart; y < yEnd; y += step) {
+    const row = ctx.getImageData(0, y, w, 1);
+    const thr = adaptiveThreshold(row.data, w);
+    const bits = rowToBits(row.data, w, thr);
+    const bars = getBarWidths(bits, 0, w - 1);
+    const result = tryDecode(bars);
+    if (result) {
+      // Dibujar línea de éxito
+      drawSuccessLine(ctx, y, w);
+      return result;
+    }
+  }
+
+  // Dibujar líneas de escaneo
+  drawScanLines(ctx, w, h, yStart, yEnd, step);
+  return null;
+}
+
+function drawSuccessLine(ctx, y, w) {
+  ctx.strokeStyle = '#00e676';
+  ctx.lineWidth = 3;
+  ctx.shadowColor = '#00e676';
+  ctx.shadowBlur = 8;
+  ctx.beginPath();
+  ctx.moveTo(0, y);
+  ctx.lineTo(w, y);
+  ctx.stroke();
+}
+
+function drawScanLines(ctx, w, h, yStart, yEnd, step) {
+  ctx.clearRect(0, 0, w, h);
+  // Línea de barrido animada
+  const t = (Date.now() % 2000) / 2000;
+  const y = yStart + (yEnd - yStart) * Math.abs(Math.sin(t * Math.PI));
+  const grad = ctx.createLinearGradient(0, 0, w, 0);
+  grad.addColorStop(0,   'transparent');
+  grad.addColorStop(0.3, 'rgba(0,230,118,0.7)');
+  grad.addColorStop(0.7, 'rgba(0,230,118,0.7)');
+  grad.addColorStop(1,   'transparent');
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 2;
+  ctx.shadowColor = '#00e676';
+  ctx.shadowBlur = 6;
+  ctx.beginPath();
+  ctx.moveTo(0, y);
+  ctx.lineTo(w, y);
+  ctx.stroke();
+}
+
+// ════════════════════════════════════════════════════════
+//  CÁMARA Y LOOP DE DETECCIÓN
+// ════════════════════════════════════════════════════════
+
+let items = JSON.parse(localStorage.getItem('sei4') || '[]');
+let stream = null, raf = null, active = false;
+let lastCode = '', lastTime = 0;
+
+render();
+
+async function toggleCam() {
+  active ? stopCam() : await startCam();
+}
+
+async function startCam() {
+  hideErr();
+  setStatus('Iniciando cámara…');
+
+  const configs = [
+    { video: { facingMode: 'environment', width:{ideal:1280}, height:{ideal:720} } },
+    { video: { facingMode: {ideal:'environment'} } },
+    { video: { facingMode: {exact:'environment'} } },
+    { video: true }
+  ];
+
+  let got = null;
+  for (const cfg of configs) {
+    try { got = await navigator.mediaDevices.getUserMedia(cfg); break; }
+    catch(e) {
+      if (e.name === 'NotAllowedError') {
+        showErr('Permiso denegado',
+          'Ve a Ajustes de Chrome → Privacidad → Cámara → Permitir para este sitio.');
+        setStatus(''); return;
+      }
+    }
+  }
+
+  if (!got) {
+    showErr('Sin acceso a la cámara',
+      'Asegúrate de abrir la app con Chrome (no Samsung Internet) y tener conexión.');
+    setStatus(''); return;
+  }
+
+  stream = got;
+  const vid = document.getElementById('vid');
+  vid.srcObject = stream;
+  vid.muted = true;
+
+  await new Promise(res => {
+    vid.onloadedmetadata = () => { vid.play().catch(()=>{}); res(); };
+    setTimeout(res, 5000);
+  });
+
+  active = true;
+  document.getElementById('idle').classList.add('hidden');
+  document.getElementById('guide').classList.add('on');
+  document.getElementById('btnCam').textContent = '⏹ Detener';
+  document.getElementById('btnCam').className = 'btn btn-stop';
+  setStatus('ESCANEANDO…');
+  loop();
+}
+
+function stopCam() {
+  if (stream) { stream.getTracks().forEach(t=>t.stop()); stream = null; }
+  cancelAnimationFrame(raf);
+  active = false;
+  document.getElementById('vid').srcObject = null;
+  document.getElementById('idle').classList.remove('hidden');
+  document.getElementById('guide').classList.remove('on');
+  document.getElementById('btnCam').textContent = '▶ Iniciar cámara';
+  document.getElementById('btnCam').className = 'btn btn-go';
+  setStatus('');
+  const cvs = document.getElementById('cvs');
+  const ctx = cvs.getContext('2d');
+  ctx.clearRect(0, 0, cvs.width, cvs.height);
+}
+
+function loop() {
+  if (!active) return;
+  const vid = document.getElementById('vid');
+  const cvs = document.getElementById('cvs');
+
+  const result = analyzeFrame(vid, cvs);
+  if (result) {
+    const now = Date.now();
+    if (result.code !== lastCode || now - lastTime > 2000) {
+      lastCode = result.code;
+      lastTime = now;
+      addCode(result.code, result.format);
+      flashFx(); beep();
+    }
+  }
+  raf = requestAnimationFrame(loop);
+}
+
+// ════════════════════════════════════════════════════════
+//  EFECTOS
+// ════════════════════════════════════════════════════════
+function flashFx() {
+  const f = document.getElementById('flash');
+  f.classList.add('on');
+  setTimeout(() => f.classList.remove('on'), 120);
+}
+function beep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = 900;
+    g.gain.setValueAtTime(.25, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .14);
+    o.start(); o.stop(ctx.currentTime + .14);
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════
+//  DATOS
+// ════════════════════════════════════════════════════════
+function addCode(code, type='Manual') {
+  code = code.trim(); if (!code) return;
+  const ex = items.find(i => i.code === code);
+  if (ex) { ex.qty++; ex.last = new Date().toISOString(); toast('+1 → '+code); }
+  else items.unshift({ id:Date.now(), code, type, qty:1,
+    first:new Date().toISOString(), last:new Date().toISOString() });
+  if (!ex) toast('✓ '+code);
+  save(); render();
+}
+function addManual() {
+  const el = document.getElementById('manInput');
+  if (el.value.trim()) { addCode(el.value.trim(),'Manual'); el.value=''; }
+}
+function changeQty(id, d) {
+  const it = items.find(i=>i.id===id);
+  if (it) { it.qty=Math.max(1,it.qty+d); save(); render(); }
+}
+function del(id) { items=items.filter(i=>i.id!==id); save(); render(); }
+function clearAll() {
+  if (!items.length) return;
+  if (confirm('¿Borrar los '+items.length+' códigos?')) {
+    items=[]; save(); render(); toast('Lista borrada');
+  }
+}
+function save() { localStorage.setItem('sei4', JSON.stringify(items)); }
+
+// ════════════════════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════════════════════
+function render() {
+  document.getElementById('cnt').textContent = items.length;
+  const el = document.getElementById('itemsList');
+  if (!items.length) {
+    el.innerHTML=`<div class="empty"><span class="empty-ic">▤</span>
+      Sin códigos aún.<br>Escanea o añade uno manualmente.</div>`;
+    return;
+  }
+  el.innerHTML = items.map((it,i)=>{
+    const d=new Date(it.last);
+    const dt=d.toLocaleDateString('es-ES')+' '+
+      d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="item" id="i${it.id}">
+      <div class="in">#${String(i+1).padStart(2,'0')}</div>
+      <div class="ii">
+        <div class="ic2">${esc(it.code)}</div>
+        <div class="im">${it.type} · ${dt}</div>
+      </div>
+      <div class="qw">
+        <button class="qb" onclick="changeQty(${it.id},-1)">−</button>
+        <span class="qv">${it.qty}</span>
+        <button class="qb" onclick="changeQty(${it.id},+1)">+</button>
+      </div>
+      <button class="db2" onclick="del(${it.id})">×</button>
+    </div>`;
+  }).join('');
+  const f=document.getElementById('i'+items[0].id);
+  if(f){f.classList.add('hi');setTimeout(()=>f.classList.remove('hi'),900);}
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ════════════════════════════════════════════════════════
+//  EXPORT EXCEL
+// ════════════════════════════════════════════════════════
+function exportXL() {
+  if (!items.length) { toast('No hay datos',true); return; }
+  const e=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const fd=iso=>{const d=new Date(iso);return d.toLocaleDateString('es-ES')+' '+
+    d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});};
+  const hdr=`<Row>
+    <Cell ss:StyleID="h"><Data ss:Type="String">Nº</Data></Cell>
+    <Cell ss:StyleID="h"><Data ss:Type="String">Código</Data></Cell>
+    <Cell ss:StyleID="h"><Data ss:Type="String">Tipo</Data></Cell>
+    <Cell ss:StyleID="h"><Data ss:Type="String">Cantidad</Data></Cell>
+    <Cell ss:StyleID="h"><Data ss:Type="String">Primera lectura</Data></Cell>
+    <Cell ss:StyleID="h"><Data ss:Type="String">Última lectura</Data></Cell></Row>`;
+  const rows=items.map((it,i)=>`<Row>
+    <Cell><Data ss:Type="Number">${i+1}</Data></Cell>
+    <Cell><Data ss:Type="String">${e(it.code)}</Data></Cell>
+    <Cell><Data ss:Type="String">${e(it.type)}</Data></Cell>
+    <Cell><Data ss:Type="Number">${it.qty}</Data></Cell>
+    <Cell><Data ss:Type="String">${fd(it.first)}</Data></Cell>
+    <Cell><Data ss:Type="String">${fd(it.last)}</Data></Cell></Row>`).join('');
+  const tot=`<Row>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell ss:StyleID="h"><Data ss:Type="String">TOTAL</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell ss:StyleID="h"><Data ss:Type="Number">${items.reduce((a,i)=>a+i.qty,0)}</Data></Cell></Row>`;
+  const xml=`<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  <Styles><Style ss:ID="h">
+    <Font ss:Bold="1" ss:Color="#FFFFFF"/>
+    <Interior ss:Color="#1a5e36" ss:Pattern="Solid"/>
+  </Style></Styles>
+  <Worksheet ss:Name="Escaneos"><Table>
+    <Column ss:Width="30"/><Column ss:Width="200"/>
+    <Column ss:Width="100"/><Column ss:Width="70"/>
+    <Column ss:Width="130"/><Column ss:Width="130"/>
+    ${hdr}${rows}${tot}
+  </Table></Worksheet></Workbook>`;
+  const blob=new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`escaneos_${new Date().toLocaleDateString('es-ES').replace(/\//g,'-')}.xls`;
+  a.click(); URL.revokeObjectURL(url);
+  toast(`✓ Exportado (${items.length} códigos)`);
+}
+
+// ════════════════════════════════════════════════════════
+//  UI HELPERS
+// ════════════════════════════════════════════════════════
+function setStatus(txt) {
+  const s=document.getElementById('status');
+  s.style.display=txt?'block':'none'; s.textContent=txt;
+}
+function showErr(title,msg) {
+  document.getElementById('errTitle').textContent=title;
+  document.getElementById('errMsg').textContent=msg;
+  document.getElementById('errBox').style.display='block';
+}
+function hideErr(){document.getElementById('errBox').style.display='none';}
+let _tt;
+function toast(msg,err=false) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='on'+(err?' err':'');
+  clearTimeout(_tt); _tt=setTimeout(()=>t.className='',2200);
+}
+</script>
+</body>
+</html>
