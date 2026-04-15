@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d0d0d">
+<title>ScanExcel</title>
+<style>
+:root {
+  --bg:#0d0d0d; --surface:#161616; --s2:#1e1e1e; --border:#282828;
+  --green:#00e676; --green2:#69f0ae; --red:#ff5252; --amber:#ffab40;
+  --text:#f2f2f2; --muted:#5a5a5a;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+  min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden}
+
+/* HEADER */
+header{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:200}
+.logo{font-family:monospace;font-size:19px;font-weight:700;letter-spacing:-0.5px}
+.logo b{color:var(--green)}
+.badge{font-family:monospace;font-size:12px;background:var(--s2);
+  border:1px solid var(--border);padding:4px 12px;border-radius:20px;color:var(--muted)}
+.badge span{color:var(--green);font-weight:700}
+
+/* CAMERA BOX */
+.cam-wrap{position:relative;background:#000;width:100%;
+  aspect-ratio:4/3;max-height:56vw;overflow:hidden;flex-shrink:0}
+@media(min-width:600px){.cam-wrap{max-height:300px}}
+#vid{width:100%;height:100%;object-fit:cover;display:block}
+#cvs{display:none}
+
+.cam-idle{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;color:var(--muted)}
+.cam-idle .ic{font-size:52px;opacity:.3}
+.cam-idle p{font-size:13px;text-align:center;max-width:200px;line-height:1.6}
+
+/* Frame guide */
+.frame-guide{position:absolute;inset:0;display:none;
+  align-items:center;justify-content:center;pointer-events:none}
+.frame-guide.on{display:flex}
+.frame-box{width:min(260px,74%);height:min(150px,42%);position:relative}
+.frame-box::before,.frame-box::after,.frame-box .c3,.frame-box .c4{
+  content:'';position:absolute;width:22px;height:22px;
+  border-color:var(--green);border-style:solid}
+.frame-box::before{top:0;left:0;border-width:3px 0 0 3px}
+.frame-box::after{top:0;right:0;border-width:3px 3px 0 0}
+.frame-box .c3{bottom:0;right:0;border-width:0 3px 3px 0}
+.frame-box .c4{bottom:0;left:0;border-width:0 0 3px 3px}
+.scan-line{position:absolute;left:4px;right:4px;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(0,230,118,.7),transparent);
+  box-shadow:0 0 8px var(--green);
+  animation:scan 2s ease-in-out infinite}
+@keyframes scan{0%,100%{top:6%;opacity:.7}50%{top:88%;opacity:1}}
+
+/* Status bar */
+.cam-status{position:absolute;bottom:0;left:0;right:0;
+  background:rgba(0,0,0,.6);padding:6px 12px;
+  font-family:monospace;font-size:11px;color:var(--green);
+  letter-spacing:1px;text-align:center;text-transform:uppercase}
+
+/* Flash */
+.flash{position:fixed;inset:0;background:var(--green);opacity:0;
+  pointer-events:none;z-index:500;transition:opacity .05s}
+.flash.on{opacity:.28}
+
+/* CONTROLS */
+.controls{display:flex;gap:8px;padding:12px 16px;
+  background:var(--surface);border-bottom:1px solid var(--border)}
+.btn{flex:1;padding:13px 10px;border-radius:9px;font-size:12px;font-weight:700;
+  font-family:monospace;letter-spacing:.5px;text-transform:uppercase;
+  cursor:pointer;transition:all .15s;display:flex;align-items:center;
+  justify-content:center;gap:6px;border:1px solid var(--border)}
+.btn:active{transform:scale(.96)}
+.btn-start{background:var(--green);color:#000;border-color:var(--green)}
+.btn-stop{background:transparent;color:var(--text)}
+.btn-torch{flex:0;padding:13px 15px;background:transparent;color:var(--amber);
+  border-color:rgba(255,171,64,.3);display:none}
+
+/* ERROR BOX */
+.err-box{display:none;background:rgba(255,82,82,.12);border:1px solid rgba(255,82,82,.3);
+  margin:10px 16px;border-radius:10px;padding:12px 14px;
+  font-size:12px;color:#ff7070;line-height:1.6}
+.err-box strong{display:block;margin-bottom:4px;font-size:13px;color:var(--red)}
+
+/* MANUAL */
+.manual{display:flex;gap:8px;padding:12px 16px;
+  background:var(--s2);border-bottom:1px solid var(--border)}
+.manual input{flex:1;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);font-family:monospace;font-size:14px;
+  padding:11px 14px;outline:none;transition:border-color .15s}
+.manual input:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(0,230,118,.12)}
+.manual input::placeholder{color:var(--muted);font-size:12px}
+.btn-plus{background:var(--surface);border:1px solid var(--green);
+  color:var(--green);border-radius:8px;padding:11px 18px;
+  font-size:22px;font-weight:700;cursor:pointer;min-width:48px;
+  transition:all .15s}
+.btn-plus:active{background:rgba(0,230,118,.1);transform:scale(.95)}
+
+/* LIST */
+.list-hdr{padding:12px 16px 6px;display:flex;align-items:center;justify-content:space-between}
+.list-lbl{font-family:monospace;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted)}
+.items{flex:1;overflow-y:auto;padding:0 16px 96px;
+  display:flex;flex-direction:column;gap:6px}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);
+  font-size:13px;line-height:2.2}
+.empty-ic{font-size:36px;display:block;opacity:.25;margin-bottom:6px}
+
+.item{background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:11px 13px;display:flex;
+  align-items:center;gap:10px;animation:in .2s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.item.hi{border-color:var(--green);box-shadow:0 0 14px rgba(0,230,118,.2)}
+.item-n{font-family:monospace;font-size:10px;color:var(--muted);min-width:22px}
+.item-info{flex:1;min-width:0}
+.item-code{font-family:monospace;font-size:13px;font-weight:700;
+  color:var(--green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.qty-wrap{display:flex;align-items:center;gap:5px;background:var(--s2);
+  border:1px solid var(--border);border-radius:20px;padding:3px 8px}
+.qty-btn{background:none;border:none;color:var(--green);font-size:18px;
+  font-weight:700;cursor:pointer;padding:0 3px;line-height:1}
+.qty-val{font-family:monospace;font-size:13px;font-weight:700;
+  min-width:22px;text-align:center}
+.del-btn{background:none;border:none;color:var(--muted);font-size:20px;
+  cursor:pointer;padding:4px;line-height:1}
+.del-btn:active{color:var(--red)}
+
+/* BOTTOM BAR */
+.bottom{position:fixed;bottom:0;left:0;right:0;padding:10px 16px;
+  display:flex;gap:8px;background:var(--surface);
+  border-top:1px solid var(--border);z-index:100}
+.btn-trash{flex:0;padding:13px 15px;background:transparent;
+  color:var(--red);border-color:rgba(255,82,82,.25)}
+.btn-trash:active{background:rgba(255,82,82,.1)}
+.btn-xl{background:#1a5e36;color:#fff;border-color:#237a46}
+.btn-xl:active{background:#144a2a}
+
+/* TOAST */
+#toast{position:fixed;bottom:76px;left:50%;
+  transform:translateX(-50%) translateY(60px);
+  background:var(--green);color:#000;padding:9px 20px;
+  border-radius:20px;font-family:monospace;font-size:12px;font-weight:700;
+  z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  white-space:nowrap;pointer-events:none}
+#toast.on{transform:translateX(-50%) translateY(0)}
+#toast.err{background:var(--red);color:#fff}
+</style>
+</head>
+<body>
+
+<div class="flash" id="flash"></div>
+
+<header>
+  <div class="logo">Scan<b>Excel</b></div>
+  <div class="badge"><span id="cnt">0</span> items</div>
+</header>
+
+<div class="cam-wrap" id="camWrap">
+  <div class="cam-idle" id="idle">
+    <span class="ic">📷</span>
+    <p>Pulsa <strong>Iniciar cámara</strong> para escanear</p>
+  </div>
+  <video id="vid" autoplay playsinline muted></video>
+  <canvas id="cvs"></canvas>
+  <div class="frame-guide" id="guide">
+    <div class="frame-box">
+      <div class="c3"></div><div class="c4"></div>
+      <div class="scan-line"></div>
+    </div>
+  </div>
+  <div class="cam-status" id="status" style="display:none"></div>
+</div>
+
+<div class="err-box" id="errBox">
+  <strong id="errTitle">Error</strong>
+  <span id="errMsg"></span>
+</div>
+
+<div class="controls">
+  <button class="btn btn-start" id="btnCam" onclick="toggleCam()">▶ Iniciar cámara</button>
+  <button class="btn btn-torch" id="btnTorch" onclick="toggleTorch()">🔦</button>
+</div>
+
+<div class="manual">
+  <input id="manInput" type="text" placeholder="O escribe el código aquí…"
+    onkeydown="if(event.key==='Enter')addManual()">
+  <button class="btn-plus" onclick="addManual()">+</button>
+</div>
+
+<div class="list-hdr">
+  <span class="list-lbl">Códigos escaneados</span>
+</div>
+<div class="items" id="itemsList"></div>
+
+<div class="bottom">
+  <button class="btn btn-trash" onclick="clearAll()">🗑</button>
+  <button class="btn btn-xl" onclick="exportXL()">📊 Exportar Excel</button>
+</div>
+<div id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────
+let items   = JSON.parse(localStorage.getItem('sei') || '[]');
+let stream  = null;
+let raf     = null;
+let active  = false;
+let lastCode = '', lastTime = 0;
+let torchOn = false;
+let detector = null;
+
+// ─── INIT ────────────────────────────────────────────────
+(function init() {
+  if ('BarcodeDetector' in window) {
+    detector = new BarcodeDetector({
+      formats: ['ean_13','ean_8','qr_code','code_128','code_39',
+                'code_93','upc_a','upc_e','codabar','itf',
+                'pdf_417','aztec','data_matrix']
+    });
+  }
+  render();
+})();
+
+// ─── CAMERA ──────────────────────────────────────────────
+async function toggleCam() {
+  active ? stopCam() : await startCam();
+}
+
+// Orden de configuraciones a intentar en Samsung
+const CAM_CONFIGS = [
+  { video: { facingMode: 'environment' } },
+  { video: { facingMode: { ideal: 'environment' } } },
+  { video: { facingMode: { exact: 'environment' } } },
+  { video: true },
+];
+
+async function startCam() {
+  hideErr();
+  setStatus('Iniciando cámara…');
+
+  let gotStream = null;
+  for (const cfg of CAM_CONFIGS) {
+    try {
+      gotStream = await navigator.mediaDevices.getUserMedia(cfg);
+      break;
+    } catch(e) {
+      if (e.name === 'NotAllowedError') {
+        showErr('Permiso denegado',
+          'Ve a Configuración → Chrome → Permisos → Cámara → Permitir. Luego recarga la página.');
+        setStatus('');
+        return;
+      }
+    }
+  }
+
+  if (!gotStream) {
+    showErr('No se pudo acceder a la cámara',
+      'Asegúrate de usar Chrome (no Samsung Internet). Si ya permitiste la cámara, prueba a recargar la página.');
+    setStatus('');
+    return;
+  }
+
+  stream = gotStream;
+  const vid = document.getElementById('vid');
+  vid.srcObject = stream;
+  await vid.play().catch(() => {});
+
+  // Torch support
+  const track = stream.getVideoTracks()[0];
+  const caps = track.getCapabilities ? track.getCapabilities() : {};
+  if (caps.torch) {
+    document.getElementById('btnTorch').style.display = 'flex';
+  }
+
+  document.getElementById('idle').style.display = 'none';
+  document.getElementById('guide').classList.add('on');
+  document.getElementById('status').style.display = 'block';
+  document.getElementById('btnCam').textContent = '⏹ Detener';
+  document.getElementById('btnCam').className = 'btn btn-stop';
+  active = true;
+
+  if (detector) {
+    setStatus('ESCANEANDO…');
+    loopDetect(vid);
+  } else {
+    setStatus('Sin escáner automático · usa entrada manual');
+  }
+}
+
+function stopCam() {
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  cancelAnimationFrame(raf);
+  active = false;
+  document.getElementById('idle').style.display = 'flex';
+  document.getElementById('guide').classList.remove('on');
+  document.getElementById('status').style.display = 'none';
+  document.getElementById('btnCam').textContent = '▶ Iniciar cámara';
+  document.getElementById('btnCam').className = 'btn btn-start';
+  document.getElementById('btnTorch').style.display = 'none';
+  torchOn = false;
+}
+
+async function loopDetect(vid) {
+  if (!active || !detector) return;
+  try {
+    if (vid.readyState >= 2) {
+      const codes = await detector.detect(vid);
+      if (codes.length) {
+        const c = codes[0];
+        const now = Date.now();
+        if (c.rawValue !== lastCode || now - lastTime > 2000) {
+          lastCode = c.rawValue;
+          lastTime = now;
+          addCode(c.rawValue, c.format || 'Código');
+          flashFx();
+          beep();
+        }
+      }
+    }
+  } catch(e) {}
+  raf = requestAnimationFrame(() => loopDetect(vid));
+}
+
+async function toggleTorch() {
+  if (!stream) return;
+  const track = stream.getVideoTracks()[0];
+  torchOn = !torchOn;
+  try {
+    await track.applyConstraints({ advanced: [{ torch: torchOn }] });
+    document.getElementById('btnTorch').textContent = torchOn ? '💡' : '🔦';
+    document.getElementById('btnTorch').style.color = torchOn
+      ? 'var(--green)' : 'var(--amber)';
+  } catch(e) { toast('Linterna no disponible', true); }
+}
+
+// ─── EFFECTS ─────────────────────────────────────────────
+function flashFx() {
+  const f = document.getElementById('flash');
+  f.classList.add('on');
+  setTimeout(() => f.classList.remove('on'), 120);
+}
+
+function beep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const g   = ctx.createGain();
+    osc.connect(g); g.connect(ctx.destination);
+    osc.frequency.value = 900;
+    g.gain.setValueAtTime(.25, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .14);
+    osc.start(); osc.stop(ctx.currentTime + .14);
+  } catch(e) {}
+}
+
+// ─── DATA ─────────────────────────────────────────────────
+function addCode(code, type = 'Manual') {
+  code = code.trim();
+  if (!code) return;
+  const ex = items.find(i => i.code === code);
+  if (ex) {
+    ex.qty++;
+    ex.last = new Date().toISOString();
+    toast('+1 → ' + code);
+  } else {
+    items.unshift({ id: Date.now(), code, type, qty: 1,
+      first: new Date().toISOString(), last: new Date().toISOString() });
+    toast('✓ ' + code);
+  }
+  save(); render();
+}
+
+function addManual() {
+  const el = document.getElementById('manInput');
+  if (el.value.trim()) { addCode(el.value.trim(), 'Manual'); el.value = ''; }
+}
+
+function changeQty(id, d) {
+  const it = items.find(i => i.id === id);
+  if (it) { it.qty = Math.max(1, it.qty + d); save(); render(); }
+}
+
+function del(id) {
+  items = items.filter(i => i.id !== id);
+  save(); render();
+}
+
+function clearAll() {
+  if (!items.length) return;
+  if (confirm('¿Borrar los ' + items.length + ' códigos?')) {
+    items = []; save(); render(); toast('Lista borrada');
+  }
+}
+
+function save() { localStorage.setItem('sei', JSON.stringify(items)); }
+
+// ─── RENDER ───────────────────────────────────────────────
+function render() {
+  document.getElementById('cnt').textContent = items.length;
+  const el = document.getElementById('itemsList');
+  if (!items.length) {
+    el.innerHTML = `<div class="empty">
+      <span class="empty-ic">▤</span>
+      Sin códigos aún.<br>Escanea o añade uno manualmente.
+    </div>`;
+    return;
+  }
+  el.innerHTML = items.map((it, i) => {
+    const d  = new Date(it.last);
+    const dt = d.toLocaleDateString('es-ES') + ' ' +
+               d.toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'});
+    return `<div class="item" id="i${it.id}">
+      <div class="item-n">#${String(i+1).padStart(2,'0')}</div>
+      <div class="item-info">
+        <div class="item-code">${esc(it.code)}</div>
+        <div class="item-meta">${it.type} · ${dt}</div>
+      </div>
+      <div class="qty-wrap">
+        <button class="qty-btn" onclick="changeQty(${it.id},-1)">−</button>
+        <span class="qty-val">${it.qty}</span>
+        <button class="qty-btn" onclick="changeQty(${it.id},+1)">+</button>
+      </div>
+      <button class="del-btn" onclick="del(${it.id})">×</button>
+    </div>`;
+  }).join('');
+
+  const first = document.getElementById('i' + items[0].id);
+  if (first) { first.classList.add('hi'); setTimeout(() => first.classList.remove('hi'), 900); }
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── EXPORT EXCEL ─────────────────────────────────────────
+function exportXL() {
+  if (!items.length) { toast('No hay datos', true); return; }
+  const e = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const fd = iso => {
+    const d = new Date(iso);
+    return d.toLocaleDateString('es-ES') + ' ' +
+           d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+  };
+  const hdr = `<Row>
+    <Cell ss:StyleID="h"><Data ss:Type="String">Nº</Data></Cell>
+    <Cell ss:StyleID="h"><Data ss:Type="String">Código</Data></Cell>
+    <Cell ss:StyleID="h"><Data ss:Type="String">Tipo</Data></Cell>
+    <Cell ss:StyleID="h"><Data ss:Type="String">Cantidad</Data></Cell>
+    <Cell ss:StyleID="h"><Data ss:Type="String">Primera lectura</Data></Cell>
+    <Cell ss:StyleID="h"><Data ss:Type="String">Última lectura</Data></Cell>
+  </Row>`;
+  const rows = items.map((it, i) => `<Row>
+    <Cell><Data ss:Type="Number">${i+1}</Data></Cell>
+    <Cell><Data ss:Type="String">${e(it.code)}</Data></Cell>
+    <Cell><Data ss:Type="String">${e(it.type)}</Data></Cell>
+    <Cell><Data ss:Type="Number">${it.qty}</Data></Cell>
+    <Cell><Data ss:Type="String">${fd(it.first)}</Data></Cell>
+    <Cell><Data ss:Type="String">${fd(it.last)}</Data></Cell>
+  </Row>`).join('');
+  const tot = `<Row>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell ss:StyleID="h"><Data ss:Type="String">TOTAL</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell ss:StyleID="h"><Data ss:Type="Number">${items.reduce((a,i)=>a+i.qty,0)}</Data></Cell>
+  </Row>`;
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  <Styles>
+    <Style ss:ID="h">
+      <Font ss:Bold="1" ss:Color="#FFFFFF"/>
+      <Interior ss:Color="#1a5e36" ss:Pattern="Solid"/>
+    </Style>
+  </Styles>
+  <Worksheet ss:Name="Escaneos">
+    <Table>
+      <Column ss:Width="30"/><Column ss:Width="200"/>
+      <Column ss:Width="100"/><Column ss:Width="70"/>
+      <Column ss:Width="130"/><Column ss:Width="130"/>
+      ${hdr}${rows}${tot}
+    </Table>
+    <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+      <FreezePanes/><FrozenNoSplit/>
+      <SplitHorizontal>1</SplitHorizontal>
+      <TopRowBottomPane>1</TopRowBottomPane>
+    </WorksheetOptions>
+  </Worksheet>
+</Workbook>`;
+  const blob = new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `escaneos_${new Date().toLocaleDateString('es-ES').replace(/\//g,'-')}.xls`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast(`✓ Exportado (${items.length} códigos)`);
+}
+
+// ─── UI HELPERS ───────────────────────────────────────────
+function setStatus(txt) {
+  const s = document.getElementById('status');
+  s.style.display = txt ? 'block' : 'none';
+  s.textContent = txt;
+}
+
+function showErr(title, msg) {
+  document.getElementById('errTitle').textContent = title;
+  document.getElementById('errMsg').textContent   = msg;
+  document.getElementById('errBox').style.display = 'block';
+}
+
+function hideErr() {
+  document.getElementById('errBox').style.display = 'none';
+}
+
+let _tt;
+function toast(msg, err = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'on' + (err ? ' err' : '');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => t.className = '', 2200);
+}
+</script>
+</body>
+</html>
